@@ -12,6 +12,7 @@ import ConfirmationModal from './components/modals/ConfirmationModal';
 import saveAs from 'file-saver';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, convertInchesToTwip } from 'docx';
 import EssayHistoryViewerModal from './components/modals/EssayHistoryViewerModal';
+import ProgressTracker from './components/ProgressTracker';
 
 
 const App: React.FC = () => {
@@ -519,6 +520,9 @@ const App: React.FC = () => {
     };
     reader.readAsText(file);
   };
+
+  const completedEssaysCount = useMemo(() => essays.filter(e => e.completed).length, [essays]);
+  const submittedApplicationsCount = useMemo(() => applications.filter(app => app.outcome === Outcome.SUBMITTED).length, [applications]);
   
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-sans">
@@ -541,6 +545,12 @@ const App: React.FC = () => {
           onExpandAll={handleExpandAll}
           onCollapseAll={handleCollapseAll}
           onExportToDocx={handleExportToDocx}
+        />
+        <ProgressTracker
+          completedEssays={completedEssaysCount}
+          totalEssays={essays.length}
+          submittedApplications={submittedApplicationsCount}
+          totalApplications={applications.length}
         />
         <ApplicationList
           applications={displayedApplications}
