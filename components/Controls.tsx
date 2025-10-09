@@ -59,7 +59,7 @@ const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery
           </select>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <label htmlFor="sort" className="font-semibold text-zinc-600 dark:text-zinc-300">Sort by:</label>
+          <label htmlFor="sort" className="font-semibold text-zinc-600 dark:text-zinc-300">Sort:</label>
           <select
             id="sort"
             value={sortBy}
