@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -233,7 +231,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                   </div>
                 </div>
                  <div className="flex flex-wrap gap-1 mt-2">
-                  {(application.tagIds || []).map(id => tagsById[id]).filter(Boolean).map(tag => (
+                  {(application.tagIds || []).map(id => tagsById[id]).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name)).map(tag => (
                     <TagComponent key={tag.id} name={tag.name} color={tag.color} />
                   ))}
                 </div>
@@ -335,7 +333,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                       <EssayItem
                         key={essay.id}
                         essay={essay}
-                        tags={essay.tagIds.map(id => tagsById[id]).filter(Boolean)}
+                        tags={essay.tagIds.map(id => tagsById[id]).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))}
                         essayTags={essayTags}
                         onUpdateEssay={onUpdateEssay}
                         onToggleEssayComplete={onToggleEssayComplete}

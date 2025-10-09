@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Application, Essay, Tag, Outcome, ChecklistItem, EssayVersion } from './types';
 import { INITIAL_APPLICATIONS, INITIAL_ESSAYS, INITIAL_TAGS } from './constants';
@@ -90,8 +91,8 @@ const App: React.FC = () => {
     }, {} as Record<string, Tag>);
   }, [tags]);
   
-  const schoolTags = useMemo(() => tags.filter(t => t.type === 'school'), [tags]);
-  const essayTags = useMemo(() => tags.filter(t => t.type === 'essay'), [tags]);
+  const schoolTags = useMemo(() => tags.filter(t => t.type === 'school').sort((a, b) => a.name.localeCompare(b.name)), [tags]);
+  const essayTags = useMemo(() => tags.filter(t => t.type === 'essay').sort((a, b) => a.name.localeCompare(b.name)), [tags]);
 
 
   const displayedApplications = useMemo(() => {
@@ -594,6 +595,7 @@ const App: React.FC = () => {
           tags={tags}
           onClose={() => setManageTagsModalOpen(false)}
           onAddTag={handleAddTag}
+          // Fix: Pass the correct 'handleUpdateTag' function to the onUpdateTag prop.
           onUpdateTag={handleUpdateTag}
           onRequestDeleteTag={requestDeleteTag}
         />

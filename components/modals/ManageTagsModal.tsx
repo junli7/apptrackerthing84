@@ -56,8 +56,8 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
     }
   };
 
-  const schoolTags = tags.filter(t => t.type === 'school');
-  const essayTags = tags.filter(t => t.type === 'essay');
+  const schoolTags = tags.filter(t => t.type === 'school').sort((a, b) => a.name.localeCompare(b.name));
+  const essayTags = tags.filter(t => t.type === 'essay').sort((a, b) => a.name.localeCompare(b.name));
   
   return (
      <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
