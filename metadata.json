@@ -1,0 +1,5 @@
+{
+  "name": "Copy of the College Application Tracker",
+  "description": "A comprehensive tool to track college applications, including deadlines, outcomes, and essays. Users can manage schools, add essays with specific prompts, monitor word counts in real-time, and categorize essays with tags for easy filtering and sorting.",
+  "requestFramePermissions": []
+}
