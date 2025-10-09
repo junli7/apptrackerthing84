@@ -13,6 +13,7 @@ export enum Outcome {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
   WAITLISTED = 'Waitlisted',
+  DEFERRED = 'Deferred',
   WITHDRAWN = 'Withdrawn',
 }
 

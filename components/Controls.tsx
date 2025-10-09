@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Tag } from '../types';
 import PencilIcon from './icons/PencilIcon';
@@ -18,9 +16,10 @@ interface ControlsProps {
   onExpandAll: () => void;
   onCollapseAll: () => void;
   onExportToDocx: () => void;
+  resultsCount: number;
 }
 
-const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery, onSearchQueryChange, essayTags, filterTagId, onFilterTagIdChange, onOpenManageTags, onExpandAll, onCollapseAll, onExportToDocx }) => {
+const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery, onSearchQueryChange, essayTags, filterTagId, onFilterTagIdChange, onOpenManageTags, onExpandAll, onCollapseAll, onExportToDocx, resultsCount }) => {
   return (
     <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between flex-wrap">
       {/* Search and Sort */}
@@ -34,9 +33,16 @@ const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery
             placeholder="Search schools, tags, essays..."
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
-            className="w-full bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md pl-10 pr-28 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             aria-label="Search applications"
           />
+           {searchQuery && (
+            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+              <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <label htmlFor="filterTag" className="font-semibold text-zinc-600 dark:text-zinc-300 whitespace-nowrap">Filter Essays:</label>

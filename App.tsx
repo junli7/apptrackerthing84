@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Application, Essay, Tag, Outcome, ChecklistItem, EssayVersion } from './types';
 import { INITIAL_APPLICATIONS, INITIAL_ESSAYS, INITIAL_TAGS } from './constants';
@@ -557,6 +556,7 @@ const App: React.FC = () => {
           onExpandAll={handleExpandAll}
           onCollapseAll={handleCollapseAll}
           onExportToDocx={handleExportToDocx}
+          resultsCount={displayedApplications.length}
         />
         <ProgressTracker
           completedEssays={progressData.completedEssaysCount}
