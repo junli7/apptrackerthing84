@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImport
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
-              College Application Tracker
+              le tracker de apps
             </h1>
             <img src="/vite.svg" alt="App Icon" className="h-8 w-8" />
           </div>
