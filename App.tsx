@@ -105,23 +105,28 @@ const App: React.FC = () => {
     }
 
     if (searchQuery) {
-        const lowerCaseQuery = searchQuery.toLowerCase();
-        filtered = filtered.filter(app => {
-          const appTags = (app.tagIds || []).map(id => tagsById[id]).filter(Boolean);
-          const appEssays = essaysByApplicationId[app.id] || [];
-
-          return (
-            app.schoolName.toLowerCase().includes(lowerCaseQuery) ||
-            app.notes.toLowerCase().includes(lowerCaseQuery) ||
-            app.outcome.toLowerCase().includes(lowerCaseQuery) ||
-            appTags.some(tag => tag.name.toLowerCase().includes(lowerCaseQuery)) ||
-            appEssays.some(essay => 
-              essay.prompt.toLowerCase().includes(lowerCaseQuery) ||
-              essay.text.toLowerCase().includes(lowerCaseQuery) ||
-              essay.tagIds.map(id => tagsById[id]).filter(Boolean).some(tag => tag.name.toLowerCase().includes(lowerCaseQuery))
-            )
-          );
-        });
+        const searchTerms = searchQuery.toLowerCase().split(';').map(term => term.trim()).filter(Boolean);
+        
+        if (searchTerms.length > 0) {
+            filtered = filtered.filter(app => {
+              const appTags = (app.tagIds || []).map(id => tagsById[id]).filter(Boolean);
+              const appEssays = essaysByApplicationId[app.id] || [];
+    
+              return searchTerms.every(term => {
+                return (
+                  app.schoolName.toLowerCase().includes(term) ||
+                  app.notes.toLowerCase().includes(term) ||
+                  app.outcome.toLowerCase().includes(term) ||
+                  appTags.some(tag => tag.name.toLowerCase().includes(term)) ||
+                  appEssays.some(essay => 
+                    essay.prompt.toLowerCase().includes(term) ||
+                    essay.text.toLowerCase().includes(term) ||
+                    essay.tagIds.map(id => tagsById[id]).filter(Boolean).some(tag => tag.name.toLowerCase().includes(term))
+                  )
+                );
+              });
+            });
+        }
     }
     
     return [...filtered].sort((a, b) => {
