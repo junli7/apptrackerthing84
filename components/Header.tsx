@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImport
             <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
               le tracker
             </h1>
-            <img src="./vite.svg" alt="App Logo" className="h-8 w-8" />
+            <img src="/vite.svg" alt="App Logo" className="h-8 w-8" />
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <button
