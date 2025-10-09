@@ -521,8 +521,20 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const completedEssaysCount = useMemo(() => essays.filter(e => e.completed).length, [essays]);
-  const submittedApplicationsCount = useMemo(() => applications.filter(app => app.outcome === Outcome.SUBMITTED).length, [applications]);
+  const progressData = useMemo(() => {
+    const visibleApplications = displayedApplications;
+    const submittedApplicationsCount = visibleApplications.filter(app => app.outcome !== Outcome.IN_PROGRESS).length;
+    
+    const visibleEssays = visibleApplications.flatMap(app => essaysByApplicationId[app.id] || []);
+    const completedEssaysCount = visibleEssays.filter(essay => essay.completed).length;
+
+    return {
+      submittedApplicationsCount,
+      totalApplications: visibleApplications.length,
+      completedEssaysCount,
+      totalEssays: visibleEssays.length
+    }
+  }, [displayedApplications, essaysByApplicationId]);
   
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-sans">
@@ -547,10 +559,10 @@ const App: React.FC = () => {
           onExportToDocx={handleExportToDocx}
         />
         <ProgressTracker
-          completedEssays={completedEssaysCount}
-          totalEssays={essays.length}
-          submittedApplications={submittedApplicationsCount}
-          totalApplications={applications.length}
+          completedEssays={progressData.completedEssaysCount}
+          totalEssays={progressData.totalEssays}
+          submittedApplications={progressData.submittedApplicationsCount}
+          totalApplications={progressData.totalApplications}
         />
         <ApplicationList
           applications={displayedApplications}
