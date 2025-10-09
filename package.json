@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://<YOUR-GITHUB-USERNAME>.github.io/apptrackerthing84",
+  "homepage": "junli7.github.io/apptrackerthing84",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
