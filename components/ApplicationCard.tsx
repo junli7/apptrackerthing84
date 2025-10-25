@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -80,7 +81,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const [editedTagIds, setEditedTagIds] = useState(application.tagIds || []);
   const [draggedEssayId, setDraggedEssayId] = useState<string | null>(null);
 
-  const { completedTasks, totalTasks, progressPercentage } = useMemo(() => {
+  const { completedTasks, totalTasks, progressPercentage, completedEssaysCount, totalEssaysCount } = useMemo(() => {
     const completedChecklistItems = application.checklist.filter(item => item.completed).length;
     const totalChecklistItems = application.checklist.length;
     const completedEssays = essays.filter(e => e.completed).length;
@@ -90,7 +91,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     const completed = completedChecklistItems + completedEssays;
     const percentage = total > 0 ? (completed / total) * 100 : 0;
 
-    return { completedTasks: completed, totalTasks: total, progressPercentage: percentage };
+    return {
+        completedTasks: completed,
+        totalTasks: total,
+        progressPercentage: percentage,
+        completedEssaysCount: completedEssays,
+        totalEssaysCount: totalEssays,
+    };
   }, [application.checklist, essays]);
 
 
@@ -271,6 +278,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     <TagComponent key={tag.id} name={tag.name} color={tag.color} />
                   ))}
                 </div>
+                 {totalEssaysCount > 0 && (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+                      {completedEssaysCount} / {totalEssaysCount} Essays 
+                  </p>
+                )}
                 {totalTasks > 0 && (
                   <div className="mt-4">
                     <div className="flex justify-end items-baseline mb-1">
