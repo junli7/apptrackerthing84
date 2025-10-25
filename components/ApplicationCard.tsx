@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -78,6 +79,35 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const [editedTagIds, setEditedTagIds] = useState(application.tagIds || []);
   const [draggedEssayId, setDraggedEssayId] = useState<string | null>(null);
 
+  const completedTasks = useMemo(() => application.checklist.filter(item => item.completed).length, [application.checklist]);
+  const totalTasks = useMemo(() => application.checklist.length, [application.checklist]);
+  const progressPercentage = useMemo(() => (totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0), [completedTasks, totalTasks]);
+
+  const { cardBgClass, cardBgStyle } = useMemo(() => {
+    // Hue progresses from red (0) -> yellow (60) -> green (120)
+    let hue;
+    if (progressPercentage <= 50) {
+      // Interpolate from red (0) to yellow (60)
+      hue = (progressPercentage / 50) * 60;
+    } else {
+      // Interpolate from yellow (60) to green (120)
+      hue = 60 + ((progressPercentage - 50) / 50) * 60;
+    }
+    
+    // For light mode: a more vibrant, saturated tint
+    const lightColor = `hsl(${hue} 100% 92%)`;
+
+    // For dark mode: a more vibrant, dark tint
+    const darkColor = `hsl(${hue} 45% 20%)`;
+
+    return {
+      cardBgClass: 'bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]',
+      cardBgStyle: {
+        '--card-bg-light': lightColor,
+        '--card-bg-dark': darkColor,
+      } as React.CSSProperties,
+    };
+  }, [progressPercentage]);
   
   const isEssayFilterActive = !!filterTagId;
 
@@ -171,7 +201,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const completedEssaysCount = useMemo(() => essays.filter(e => e.completed).length, [essays]);
 
   return (
-    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden transition-shadow hover:shadow-lg">
+    <div style={cardBgStyle} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg`}>
       <div
         role="button"
         tabIndex={isEditing ? -1 : 0}
@@ -235,6 +265,24 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     <TagComponent key={tag.id} name={tag.name} color={tag.color} />
                   ))}
                 </div>
+                {totalTasks > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-end items-baseline mb-1">
+                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{completedTasks} / {totalTasks}</span>
+                    </div>
+                    <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progressPercentage}%` }}
+                        role="progressbar"
+                        aria-valuenow={completedTasks}
+                        aria-valuemin={0}
+                        aria-valuemax={totalTasks}
+                        aria-label="Checklist progress"
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
