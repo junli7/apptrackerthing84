@@ -278,26 +278,36 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     <TagComponent key={tag.id} name={tag.name} color={tag.color} />
                   ))}
                 </div>
-                 {totalEssaysCount > 0 && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-                      {completedEssaysCount} / {totalEssaysCount} Essays 
-                  </p>
-                )}
-                {totalTasks > 0 && (
-                  <div className="mt-4">
-                    <div className="flex justify-end items-baseline mb-1">
-                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{completedTasks} / {totalTasks}</span>
+                {(totalEssaysCount > 0 || totalTasks > 0) && (
+                  <div className="flex items-end justify-between gap-4 mt-4">
+                    {/* Essay Count */}
+                    <div className="flex-shrink-0">
+                      {totalEssaysCount > 0 && (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          {completedEssaysCount} / {totalEssaysCount} Essays
+                        </p>
+                      )}
                     </div>
-                    <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${progressPercentage}%` }}
-                        role="progressbar"
-                        aria-valuenow={completedTasks}
-                        aria-valuemin={0}
-                        aria-valuemax={totalTasks}
-                        aria-label="Overall progress for checklist items and essays"
-                      ></div>
+                    {/* Overall Progress Bar */}
+                    <div className="flex-grow">
+                      {totalTasks > 0 && (
+                        <>
+                          <div className="flex justify-end items-baseline mb-1">
+                            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{completedTasks} / {totalTasks}</span>
+                          </div>
+                          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
+                              style={{ width: `${progressPercentage}%` }}
+                              role="progressbar"
+                              aria-valuenow={completedTasks}
+                              aria-valuemin={0}
+                              aria-valuemax={totalTasks}
+                              aria-label="Overall progress for checklist items and essays"
+                            ></div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
