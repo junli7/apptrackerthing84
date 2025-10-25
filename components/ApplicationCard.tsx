@@ -40,6 +40,7 @@ interface ApplicationCardProps {
   onExpandAppContent: (appId: string) => void;
   onCollapseAppContent: (appId: string) => void;
   onOpenHistoryViewer: (version: EssayVersion) => void;
+  animationDelay: number;
 }
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({
@@ -70,6 +71,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   onExpandAppContent,
   onCollapseAppContent,
   onOpenHistoryViewer,
+  animationDelay,
 }) => {
   const [notes, setNotes] = useState(application.notes);
   const [isEditing, setIsEditing] = useState(false);
@@ -119,6 +121,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   }, [progressPercentage]);
   
   const isEssayFilterActive = !!filterTagId;
+
+  const animationStyle = { animationDelay: `${animationDelay}ms` };
 
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onUpdateApplication({ ...application, outcome: e.target.value as Outcome });
@@ -208,7 +212,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   };
 
   return (
-    <div style={cardBgStyle} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg`}>
+    <div style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 animate-fadeInUp`}>
       <div
         role="button"
         tabIndex={isEditing ? -1 : 0}
@@ -335,21 +339,21 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
             )}
 
           </div>
-           <ChevronDownIcon className={`h-6 w-6 text-zinc-500 transition-transform transform ${isExpanded ? 'rotate-180' : ''} shrink-0`} />
+           <ChevronDownIcon className={`h-6 w-6 text-zinc-500 transition-transform transform duration-200 ${isExpanded ? 'rotate-180' : ''} shrink-0`} />
         </div>
       </div>
       
-      {isExpanded && (
-        <>
+      <div id={`application-details-${application.id}`} className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
           {!isEssayFilterActive && (
             <div className="p-4 md:px-6 md:py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
               <h4 className="text-sm font-semibold mr-auto text-zinc-600 dark:text-zinc-400">Sections</h4>
-              <button onClick={() => onExpandAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400">Expand Content</button>
+              <button onClick={() => onExpandAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Expand Content</button>
               <span className="text-zinc-300 dark:text-zinc-600">|</span>
-              <button onClick={() => onCollapseAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400">Collapse Content</button>
+              <button onClick={() => onCollapseAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Collapse Content</button>
             </div>
           )}
-          <div id={`application-details-${application.id}`}>
+          <div>
             <div className="p-4 md:p-6 space-y-4">
               {!isEssayFilterActive && (
                 <>
@@ -414,7 +418,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
               <div className="p-4 md:p-6 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-700">
                 <button
                   onClick={() => onAddEssay(application.id)}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-colors"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
                 >
                   <PlusIcon className="h-5 w-5" />
                   Add Essay
@@ -422,8 +426,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
               </div>
             )}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

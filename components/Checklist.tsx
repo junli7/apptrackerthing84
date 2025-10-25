@@ -62,7 +62,7 @@ const Checklist: React.FC<ChecklistProps> = ({ items, onAddTask, onToggleTask, o
         />
         <button
           type="submit"
-          className="p-2 bg-green-700 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800"
+          className="p-2 bg-green-700 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all duration-150 active:scale-95 hover:-translate-y-0.5"
           aria-label="Add new task"
         >
           <PlusIcon className="h-5 w-5"/>

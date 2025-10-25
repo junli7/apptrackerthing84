@@ -204,6 +204,10 @@ const App: React.FC = () => {
     }
   }, [applications, essaysByApplicationId, tagsById, filterTagId, searchQuery, sortBy, sortTrigger]);
 
+  const sortAndFilterKey = useMemo(() => {
+    return `${sortBy}-${filterTagId}-${searchQuery}`;
+  }, [sortBy, filterTagId, searchQuery]);
+
   useEffect(() => {
     if (filterTagId) {
       const newExpanded = new Set<string>();
@@ -632,6 +636,7 @@ const App: React.FC = () => {
           totalApplications={progressData.totalApplications}
         />
         <ApplicationList
+          sortAndFilterKey={sortAndFilterKey}
           applications={displayedApplications}
           essaysByApplicationId={essaysByApplicationId}
           tagsById={tagsById}

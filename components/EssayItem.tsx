@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Essay, Tag, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import TagComponent from './Tag';
@@ -258,7 +256,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
               >
                 <TrashIcon className="h-4 w-4" />
               </button>
-              <ChevronDownIcon className={`h-5 w-5 text-zinc-500 transition-transform transform ${!isExpanded ? '' : 'rotate-180'} ml-2`} />
+              <ChevronDownIcon className={`h-5 w-5 text-zinc-500 transition-transform transform duration-200 ${!isExpanded ? '' : 'rotate-180'} ml-2`} />
             </>
            )}
         </div>
@@ -290,42 +288,44 @@ const EssayItem: React.FC<EssayItemProps> = ({
         </div>
       )}
 
-      {isExpanded && (
-        <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-700">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleTextChange}
-            onClick={(e) => e.stopPropagation()}
-            placeholder="Start writing your essay here..."
-            className="w-full p-2 mt-4 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 resize-none overflow-hidden"
-          />
-          <div className="flex justify-between items-center mt-2 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onCommitEssayHistory(essay.id, text)}
-                className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 font-semibold px-3 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
-                aria-label="Commit to history"
-              >
-                <BookmarkSquareIcon className="h-4 w-4" />
-                Commit to History
-              </button>
-              <button
-                onClick={() => onToggleEssayComplete(essay.id)}
-                className={`flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${essay.completed 
-                    ? 'text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900' 
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-zinc-100 dark:hover:bg-zinc-700/50'}`}
-              >
-                <CheckIcon className="h-4 w-4" />
-                {essay.completed ? 'Mark as In-Progress' : 'Mark as Complete'}
-              </button>
+      <div className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-700">
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleTextChange}
+              onClick={(e) => e.stopPropagation()}
+              placeholder="Start writing your essay here..."
+              className="w-full p-2 mt-4 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 resize-none overflow-hidden"
+            />
+            <div className="flex justify-between items-center mt-2 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onCommitEssayHistory(essay.id, text)}
+                  className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 font-semibold px-3 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+                  aria-label="Commit to history"
+                >
+                  <BookmarkSquareIcon className="h-4 w-4" />
+                  Commit to History
+                </button>
+                <button
+                  onClick={() => onToggleEssayComplete(essay.id)}
+                  className={`flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${essay.completed 
+                      ? 'text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900' 
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-zinc-100 dark:hover:bg-zinc-700/50'}`}
+                >
+                  <CheckIcon className="h-4 w-4" />
+                  {essay.completed ? 'Mark as In-Progress' : 'Mark as Complete'}
+                </button>
+              </div>
+              <p className="text-right text-sm text-zinc-500 dark:text-zinc-400 font-mono">
+                {wordCount} {wordCount === 1 ? 'word' : 'words'}
+              </p>
             </div>
-            <p className="text-right text-sm text-zinc-500 dark:text-zinc-400 font-mono">
-              {wordCount} {wordCount === 1 ? 'word' : 'words'}
-            </p>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

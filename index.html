@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>le tracker</title>
+    <title>College Application Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
   <script type="importmap">
 {
@@ -19,6 +19,21 @@
   }
 }
 </script>
+<style>
+  @keyframes keyframes-fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fadeInUp {
+    animation: keyframes-fadeInUp 0.2s ease-out forwards;
+  }
+</style>
 </head>
   <body class="bg-zinc-50 dark:bg-zinc-900">
     <div id="root"></div>

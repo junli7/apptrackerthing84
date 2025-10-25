@@ -1,6 +1,6 @@
-
 import React from 'react';
 import ExclamationTriangleIcon from '../icons/ExclamationTriangleIcon';
+import ModalWrapper from './ModalWrapper';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -14,8 +14,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, title, me
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+    <ModalWrapper onClose={onClose}>
         <div className="p-6">
           <div className="flex items-start gap-4">
             <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
@@ -49,8 +48,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, title, me
             Delete
           </button>
         </div>
-      </div>
-    </div>
+    </ModalWrapper>
   );
 };
 

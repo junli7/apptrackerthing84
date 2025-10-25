@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Application, Essay, Tag, Outcome, EssayVersion } from '../types';
 import ApplicationCard from './ApplicationCard';
@@ -32,6 +30,7 @@ interface ApplicationListProps {
   onExpandAppContent: (appId: string) => void;
   onCollapseAppContent: (appId: string) => void;
   onOpenHistoryViewer: (version: EssayVersion) => void;
+  sortAndFilterKey: string;
 }
 
 const ApplicationList: React.FC<ApplicationListProps> = (props) => {
@@ -45,11 +44,12 @@ const ApplicationList: React.FC<ApplicationListProps> = (props) => {
   }
 
   return (
-    <div className="space-y-6">
-      {props.applications.map(app => (
+    <div key={props.sortAndFilterKey} className="space-y-6">
+      {props.applications.map((app, index) => (
         <ApplicationCard
           key={app.id}
           application={app}
+          animationDelay={index * 50}
           isExpanded={props.expandedAppIds.has(app.id)}
           onToggleExpand={() => props.onToggleExpand(app.id)}
           essays={props.essaysByApplicationId[app.id] || []}

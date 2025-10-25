@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { EssayVersion } from '../../types';
+import ModalWrapper from './ModalWrapper';
 
 interface EssayHistoryViewerModalProps {
   isOpen: boolean;
@@ -14,8 +14,8 @@ const EssayHistoryViewerModal: React.FC<EssayHistoryViewerModalProps> = ({ isOpe
   const formattedTimestamp = new Date(version.timestamp).toLocaleString();
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-2xl h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <ModalWrapper onClose={onClose} widthClass="max-w-2xl">
+      <div className="h-[80vh] flex flex-col">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700">
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Essay Version</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Saved on {formattedTimestamp}</p>
@@ -35,7 +35,7 @@ const EssayHistoryViewerModal: React.FC<EssayHistoryViewerModalProps> = ({ isOpe
           </button>
         </div>
       </div>
-    </div>
+    </ModalWrapper>
   );
 };
 

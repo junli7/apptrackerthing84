@@ -6,6 +6,7 @@ import PlusIcon from '../icons/PlusIcon';
 import TrashIcon from '../icons/TrashIcon';
 import PencilIcon from '../icons/PencilIcon';
 import CheckIcon from '../icons/CheckIcon';
+import ModalWrapper from './ModalWrapper';
 
 interface ManageTagsModalProps {
   tags: Tag[];
@@ -60,8 +61,7 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
   const essayTags = tags.filter(t => t.type === 'essay').sort((a, b) => a.name.localeCompare(b.name));
   
   return (
-     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
+     <ModalWrapper onClose={onClose} widthClass="max-w-3xl">
           <div className="p-6">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6">Manage Tags</h2>
             <div className="flex flex-col md:flex-row gap-6">
@@ -170,8 +170,7 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
               Done
             </button>
           </div>
-      </div>
-    </div>
+      </ModalWrapper>
   );
 }
 

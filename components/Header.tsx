@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImport
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={onImportData}
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-colors"
+              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
               title="Import Data"
             >
               <ArrowDownTrayIcon className="h-5 w-5" />
@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImport
 
             <button
               onClick={onExportData}
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-colors"
+              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
               title="Export Data"
             >
               <ArrowUpTrayIcon className="h-5 w-5" />
@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImport
             
             <button
               onClick={onAddSchool}
-              className="flex items-center gap-2 bg-green-700 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg text-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-colors"
+              className="flex items-center gap-2 bg-green-700 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg text-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
             >
               <PlusIcon className="h-5 w-5" />
               <span className="hidden sm:inline">Add School</span>
