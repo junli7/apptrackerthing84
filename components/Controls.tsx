@@ -3,10 +3,14 @@ import { Tag } from '../types';
 import PencilIcon from './icons/PencilIcon';
 import SearchIcon from './icons/SearchIcon';
 import DocumentTextIcon from './icons/DocumentTextIcon';
+import ArrowPathIcon from './icons/ArrowPathIcon';
+
+type SortByType = 'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc';
 
 interface ControlsProps {
-  sortBy: 'deadline' | 'schoolName' | 'doneness';
-  onSortByChange: (value: 'deadline' | 'schoolName' | 'doneness') => void;
+  sortBy: SortByType;
+  onSortByChange: (value: SortByType) => void;
+  onRefreshSort: () => void;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   essayTags: Tag[];
@@ -19,7 +23,7 @@ interface ControlsProps {
   resultsCount: number;
 }
 
-const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery, onSearchQueryChange, essayTags, filterTagId, onFilterTagIdChange, onOpenManageTags, onExpandAll, onCollapseAll, onExportToDocx, resultsCount }) => {
+const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, onRefreshSort, searchQuery, onSearchQueryChange, essayTags, filterTagId, onFilterTagIdChange, onOpenManageTags, onExpandAll, onCollapseAll, onExportToDocx, resultsCount }) => {
   return (
     <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between flex-wrap">
       {/* Search and Sort */}
@@ -63,13 +67,22 @@ const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery
           <select
             id="sort"
             value={sortBy}
-            onChange={(e) => onSortByChange(e.target.value as 'deadline' | 'schoolName' | 'doneness')}
+            onChange={(e) => onSortByChange(e.target.value as SortByType)}
             className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto"
           >
-            <option value="deadline">Deadline</option>
-            <option value="schoolName">School Name (A-Z)</option>
-            <option value="doneness">Doneness</option>
+            <option value="deadline-asc">Deadline (Soonest)</option>
+            <option value="schoolName-asc">School Name (A-Z)</option>
+            <option value="schoolName-desc">School Name (Z-A)</option>
+            <option value="doneness-asc">Doneness (Least to Most)</option>
+            <option value="doneness-desc">Doneness (Most to Least)</option>
           </select>
+           <button
+            onClick={onRefreshSort}
+            className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-colors"
+            title="Refresh sort order"
+          >
+            <ArrowPathIcon className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
+          </button>
         </div>
       </div>
       

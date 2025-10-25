@@ -64,14 +64,22 @@ const App: React.FC = () => {
   const [isAddEssayModalOpen, setAddEssayModalOpen] = useState<string | null>(null);
   const [isManageTagsModalOpen, setManageTagsModalOpen] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-  const [sortBy, setSortBy] = useState<'deadline' | 'schoolName' | 'doneness'>('deadline');
+  const [sortBy, setSortBy] = useState<'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc'>('deadline-asc');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTagId, setFilterTagId] = useState<string | null>(null);
   const [expandedAppIds, setExpandedAppIds] = useState<Set<string>>(new Set());
   const [expandedEssayIds, setExpandedEssayIds] = useState<Set<string>>(new Set());
   const [expandedSectionKeys, setExpandedSectionKeys] = useState<Record<string, Set<'checklist' | 'notes'>>>({});
   const [essayHistoryViewer, setEssayHistoryViewer] = useState<{ isOpen: boolean, version: EssayVersion | null }>({ isOpen: false, version: null });
+  const [sortTrigger, setSortTrigger] = useState(0);
+
+  const handleRefreshSort = useCallback(() => {
+    setSortTrigger(c => c + 1);
+  }, []);
   
+  // Refs to stabilize sorting
+  const sortedAppIdsRef = useRef<string[]>([]);
+  const prevDependenciesRef = useRef({ sortBy, filterTagId, searchQuery, sortTrigger });
 
   const essaysByApplicationId = useMemo(() => {
     return essays.reduce((acc, essay) => {
@@ -96,6 +104,7 @@ const App: React.FC = () => {
 
 
   const displayedApplications = useMemo(() => {
+    // 1. Filter applications based on search and tag filters.
     let filtered = applications;
 
     if (filterTagId) {
@@ -130,33 +139,70 @@ const App: React.FC = () => {
         }
     }
     
-    const getCompletionPercentage = (app: Application) => {
-        const appEssays = essaysByApplicationId[app.id] || [];
-        const totalChecklistTasks = app.checklist.length;
-        const completedChecklistTasks = app.checklist.filter(i => i.completed).length;
-        
-        const totalEssayTasks = appEssays.length;
-        const completedEssayTasks = appEssays.filter(e => e.completed).length;
+    // 2. Decide if a re-sort is needed.
+    const sortCriteriaChanged =
+      prevDependenciesRef.current.sortBy !== sortBy ||
+      prevDependenciesRef.current.filterTagId !== filterTagId ||
+      prevDependenciesRef.current.searchQuery !== searchQuery ||
+      prevDependenciesRef.current.sortTrigger !== sortTrigger;
+      
+    const currentFilteredIds = new Set(filtered.map(app => app.id));
+    const previousSortedIdsAreValid = 
+      sortedAppIdsRef.current.length === currentFilteredIds.size &&
+      sortedAppIdsRef.current.every(id => currentFilteredIds.has(id));
 
-        const totalTasks = totalChecklistTasks + totalEssayTasks;
-        const completedTasks = completedChecklistTasks + completedEssayTasks;
-        
-        if (totalTasks === 0) return 101; // Put schools with no tasks at the end
-        return (completedTasks / totalTasks) * 100;
-    };
+    if (sortCriteriaChanged || !previousSortedIdsAreValid) {
+      // Re-sort is needed.
+      const getCompletionPercentage = (app: Application) => {
+          const appEssays = essaysByApplicationId[app.id] || [];
+          const totalChecklistTasks = app.checklist.length;
+          const completedChecklistTasks = app.checklist.filter(i => i.completed).length;
+          const totalEssayTasks = appEssays.length;
+          const completedEssayTasks = appEssays.filter(e => e.completed).length;
+          const totalTasks = totalChecklistTasks + totalEssayTasks;
+          const completedTasks = completedChecklistTasks + completedEssayTasks;
+          if (totalTasks === 0) return -1;
+          return (completedTasks / totalTasks) * 100;
+      };
 
-    return [...filtered].sort((a, b) => {
-      if (sortBy === 'deadline') {
-        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-      }
-      if (sortBy === 'doneness') {
-        const progressA = getCompletionPercentage(a);
-        const progressB = getCompletionPercentage(b);
-        return progressA - progressB;
-      }
-      return a.schoolName.localeCompare(b.schoolName);
-    });
-  }, [applications, essaysByApplicationId, tagsById, filterTagId, searchQuery, sortBy]);
+      const sorted = [...filtered].sort((a, b) => {
+        switch (sortBy) {
+          case 'deadline-asc':
+            return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+          case 'schoolName-asc':
+            return a.schoolName.localeCompare(b.schoolName);
+          case 'schoolName-desc':
+            return b.schoolName.localeCompare(a.schoolName);
+          case 'doneness-asc': {
+            const progressA = getCompletionPercentage(a);
+            const progressB = getCompletionPercentage(b);
+            if (progressA === -1) return 1;
+            if (progressB === -1) return -1;
+            return progressA - progressB;
+          }
+          case 'doneness-desc': {
+            const progressA = getCompletionPercentage(a);
+            const progressB = getCompletionPercentage(b);
+            if (progressA === -1) return 1;
+            if (progressB === -1) return -1;
+            return progressB - progressA;
+          }
+          default:
+            return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        }
+      });
+      
+      // Update refs with the new stable order and criteria.
+      sortedAppIdsRef.current = sorted.map(app => app.id);
+      prevDependenciesRef.current = { sortBy, filterTagId, searchQuery, sortTrigger };
+      
+      return sorted;
+    } else {
+      // No re-sort needed. Maintain the previous order but use the latest data.
+      const appsById = new Map(filtered.map(app => [app.id, app]));
+      return sortedAppIdsRef.current.map(id => appsById.get(id)).filter((app): app is Application => !!app);
+    }
+  }, [applications, essaysByApplicationId, tagsById, filterTagId, searchQuery, sortBy, sortTrigger]);
 
   useEffect(() => {
     if (filterTagId) {
@@ -567,6 +613,7 @@ const App: React.FC = () => {
         <Controls
           sortBy={sortBy}
           onSortByChange={setSortBy}
+          onRefreshSort={handleRefreshSort}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           essayTags={essayTags}
