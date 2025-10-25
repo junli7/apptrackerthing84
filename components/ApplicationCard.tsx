@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -79,9 +78,19 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const [editedTagIds, setEditedTagIds] = useState(application.tagIds || []);
   const [draggedEssayId, setDraggedEssayId] = useState<string | null>(null);
 
-  const completedTasks = useMemo(() => application.checklist.filter(item => item.completed).length, [application.checklist]);
-  const totalTasks = useMemo(() => application.checklist.length, [application.checklist]);
-  const progressPercentage = useMemo(() => (totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0), [completedTasks, totalTasks]);
+  const { completedTasks, totalTasks, progressPercentage } = useMemo(() => {
+    const completedChecklistItems = application.checklist.filter(item => item.completed).length;
+    const totalChecklistItems = application.checklist.length;
+    const completedEssays = essays.filter(e => e.completed).length;
+    const totalEssays = essays.length;
+
+    const total = totalChecklistItems + totalEssays;
+    const completed = completedChecklistItems + completedEssays;
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+    return { completedTasks: completed, totalTasks: total, progressPercentage: percentage };
+  }, [application.checklist, essays]);
+
 
   const { cardBgClass, cardBgStyle } = useMemo(() => {
     // Hue progresses from red (0) -> yellow (60) -> green (120)
@@ -198,8 +207,6 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     setDraggedEssayId(null);
   };
 
-  const completedEssaysCount = useMemo(() => essays.filter(e => e.completed).length, [essays]);
-
   return (
     <div style={cardBgStyle} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg`}>
       <div
@@ -254,11 +261,6 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                   <p className="text-zinc-500 dark:text-zinc-400">
                     Deadline: <span className="font-semibold">{formattedDeadline}</span>
                   </p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    {essays.length > 0 && (
-                      <p>Essays: <span className="font-semibold">{completedEssaysCount}/{essays.length}</span></p>
-                    )}
-                  </div>
                 </div>
                  <div className="flex flex-wrap gap-1 mt-2">
                   {(application.tagIds || []).map(id => tagsById[id]).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name)).map(tag => (
@@ -278,7 +280,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                         aria-valuenow={completedTasks}
                         aria-valuemin={0}
                         aria-valuemax={totalTasks}
-                        aria-label="Checklist progress"
+                        aria-label="Overall progress for checklist items and essays"
                       ></div>
                     </div>
                   </div>

@@ -5,8 +5,8 @@ import SearchIcon from './icons/SearchIcon';
 import DocumentTextIcon from './icons/DocumentTextIcon';
 
 interface ControlsProps {
-  sortBy: 'deadline' | 'schoolName';
-  onSortByChange: (value: 'deadline' | 'schoolName') => void;
+  sortBy: 'deadline' | 'schoolName' | 'doneness';
+  onSortByChange: (value: 'deadline' | 'schoolName' | 'doneness') => void;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   essayTags: Tag[];
@@ -59,15 +59,16 @@ const Controls: React.FC<ControlsProps> = ({ sortBy, onSortByChange, searchQuery
           </select>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <label htmlFor="sort" className="font-semibold text-zinc-600 dark:text-zinc-300">Sort:</label>
+          <label htmlFor="sort" className="font-semibold text-zinc-600 dark:text-zinc-300">Sort by:</label>
           <select
             id="sort"
             value={sortBy}
-            onChange={(e) => onSortByChange(e.target.value as 'deadline' | 'schoolName')}
+            onChange={(e) => onSortByChange(e.target.value as 'deadline' | 'schoolName' | 'doneness')}
             className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto"
           >
             <option value="deadline">Deadline</option>
             <option value="schoolName">School Name (A-Z)</option>
+            <option value="doneness">Doneness</option>
           </select>
         </div>
       </div>

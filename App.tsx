@@ -64,7 +64,7 @@ const App: React.FC = () => {
   const [isAddEssayModalOpen, setAddEssayModalOpen] = useState<string | null>(null);
   const [isManageTagsModalOpen, setManageTagsModalOpen] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-  const [sortBy, setSortBy] = useState<'deadline' | 'schoolName'>('deadline');
+  const [sortBy, setSortBy] = useState<'deadline' | 'schoolName' | 'doneness'>('deadline');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTagId, setFilterTagId] = useState<string | null>(null);
   const [expandedAppIds, setExpandedAppIds] = useState<Set<string>>(new Set());
@@ -130,9 +130,29 @@ const App: React.FC = () => {
         }
     }
     
+    const getCompletionPercentage = (app: Application) => {
+        const appEssays = essaysByApplicationId[app.id] || [];
+        const totalChecklistTasks = app.checklist.length;
+        const completedChecklistTasks = app.checklist.filter(i => i.completed).length;
+        
+        const totalEssayTasks = appEssays.length;
+        const completedEssayTasks = appEssays.filter(e => e.completed).length;
+
+        const totalTasks = totalChecklistTasks + totalEssayTasks;
+        const completedTasks = completedChecklistTasks + completedEssayTasks;
+        
+        if (totalTasks === 0) return 101; // Put schools with no tasks at the end
+        return (completedTasks / totalTasks) * 100;
+    };
+
     return [...filtered].sort((a, b) => {
       if (sortBy === 'deadline') {
         return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
+      if (sortBy === 'doneness') {
+        const progressA = getCompletionPercentage(a);
+        const progressB = getCompletionPercentage(b);
+        return progressA - progressB;
       }
       return a.schoolName.localeCompare(b.schoolName);
     });
