@@ -6,6 +6,7 @@ import Controls from './components/Controls';
 import ApplicationList from './components/ApplicationList';
 import BoardView from './components/BoardView';
 import EssayView from './components/EssayView';
+import DashboardView from './components/DashboardView';
 import AddSchoolModal from './components/modals/AddSchoolModal';
 import AddEssayModal from './components/modals/AddEssayModal';
 import ManageTagsModal from './components/modals/ManageTagsModal';
@@ -66,7 +67,7 @@ const App: React.FC = () => {
   }, [applications, essays, tags, isInitialLoad]);
 
   // State for UI
-  const [currentView, setCurrentView] = useState<'list' | 'board' | 'essays'>('list');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'board' | 'essays'>('dashboard');
   const [isAddSchoolModalOpen, setAddSchoolModalOpen] = useState(false);
   const [isAddEssayModalOpen, setAddEssayModalOpen] = useState<string | null>(null);
   const [isManageTagsModalOpen, setManageTagsModalOpen] = useState(false);
@@ -74,7 +75,7 @@ const App: React.FC = () => {
   const [sortBy, setSortBy] = useState<'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc'>('deadline-asc');
   const [essaySortBy, setEssaySortBy] = useState<'deadline-asc' | 'schoolName-asc' | 'wordCount-asc' | 'wordCount-desc'>('deadline-asc');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTagId, setFilterTagId] = useState<string | null>(null);
+  const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
   const [expandedAppIds, setExpandedAppIds] = useState<Set<string>>(new Set());
   const [expandedEssayIds, setExpandedEssayIds] = useState<Set<string>>(new Set());
   const [expandedSectionKeys, setExpandedSectionKeys] = useState<Record<string, Set<'checklist' | 'notes'>>>({});
@@ -87,7 +88,7 @@ const App: React.FC = () => {
   
   // Refs to stabilize sorting
   const sortedAppIdsRef = useRef<string[]>([]);
-  const prevDependenciesRef = useRef({ sortBy, filterTagId, searchQuery, sortTrigger });
+  const prevDependenciesRef = useRef({ sortBy, filterTagIds, searchQuery, sortTrigger });
 
   const essaysByApplicationId = useMemo(() => {
     return essays.reduce((acc, essay) => {
@@ -109,17 +110,38 @@ const App: React.FC = () => {
   
   const schoolTags = useMemo(() => tags.filter(t => t.type === 'school').sort((a, b) => a.name.localeCompare(b.name)), [tags]);
   const essayTags = useMemo(() => tags.filter(t => t.type === 'essay').sort((a, b) => a.name.localeCompare(b.name)), [tags]);
+  const appsById = useMemo(() => new Map(applications.map(app => [app.id, app])), [applications]);
 
 
   const displayedApplications = useMemo(() => {
     // 1. Filter applications based on search and tag filters.
     let filtered = applications;
 
-    if (filterTagId) {
-      filtered = applications.filter(app => {
-        const appEssays = essaysByApplicationId[app.id] || [];
-        return app.tagIds.includes(filterTagId) || appEssays.some(essay => essay.tagIds.includes(filterTagId));
-      });
+    if (filterTagIds.length > 0) {
+        const schoolFilterIds = filterTagIds.filter(id => tagsById[id]?.type === 'school');
+        const essayFilterIds = filterTagIds.filter(id => tagsById[id]?.type === 'essay');
+
+        filtered = applications.filter(app => {
+            // Must match ALL selected school tags (AND logic)
+            const schoolMatch = schoolFilterIds.every(id => app.tagIds.includes(id));
+
+            // Must have at least one essay that matches at least ONE of the selected essay tags (OR logic)
+            const appEssays = essaysByApplicationId[app.id] || [];
+            const essayMatch = essayFilterIds.length === 0 || appEssays.some(essay => essay.tagIds.some(id => essayFilterIds.includes(id)));
+            
+            // If only essay tags are selected, we just need the essay match.
+            if (schoolFilterIds.length === 0) {
+                return essayMatch;
+            }
+
+            // If only school tags are selected, we just need the school match.
+            if (essayFilterIds.length === 0) {
+                return schoolMatch;
+            }
+
+            // If both are selected, we need both to match.
+            return schoolMatch && essayMatch;
+        });
     }
 
     if (searchQuery) {
@@ -150,7 +172,7 @@ const App: React.FC = () => {
     // 2. Decide if a re-sort is needed.
     const sortCriteriaChanged =
       prevDependenciesRef.current.sortBy !== sortBy ||
-      prevDependenciesRef.current.filterTagId !== filterTagId ||
+      JSON.stringify(prevDependenciesRef.current.filterTagIds) !== JSON.stringify(filterTagIds) ||
       prevDependenciesRef.current.searchQuery !== searchQuery ||
       prevDependenciesRef.current.sortTrigger !== sortTrigger;
       
@@ -202,24 +224,71 @@ const App: React.FC = () => {
       
       // Update refs with the new stable order and criteria.
       sortedAppIdsRef.current = sorted.map(app => app.id);
-      prevDependenciesRef.current = { sortBy, filterTagId, searchQuery, sortTrigger };
+      prevDependenciesRef.current = { sortBy, filterTagIds, searchQuery, sortTrigger };
       
       return sorted;
     } else {
       // No re-sort needed. Maintain the previous order but use the latest data.
-      const appsById = new Map(filtered.map(app => [app.id, app]));
-      return sortedAppIdsRef.current.map(id => appsById.get(id)).filter((app): app is Application => !!app);
+      const appsByIdMap = new Map(filtered.map(app => [app.id, app]));
+      return sortedAppIdsRef.current.map(id => appsByIdMap.get(id)).filter((app): app is Application => !!app);
     }
-  }, [applications, essaysByApplicationId, tagsById, filterTagId, searchQuery, sortBy, sortTrigger]);
+  }, [applications, essaysByApplicationId, tagsById, filterTagIds, searchQuery, sortBy, sortTrigger]);
 
   const sortAndFilterKey = useMemo(() => {
-    return `${sortBy}-${filterTagId}-${searchQuery}`;
-  }, [sortBy, filterTagId, searchQuery]);
+    return `${sortBy}-${filterTagIds.sort().join(',')}-${searchQuery}`;
+  }, [sortBy, filterTagIds, searchQuery]);
 
   const essaysForEssayView = useMemo(() => {
-    const visibleEssays = displayedApplications.flatMap(app => essaysByApplicationId[app.id] || []);
-    const appsById = new Map(applications.map(app => [app.id, app]));
+    let visibleEssays = essays;
+    
+    if (filterTagIds.length > 0) {
+        const schoolFilterIds = filterTagIds.filter(id => tagsById[id]?.type === 'school');
+        const essayFilterIds = filterTagIds.filter(id => tagsById[id]?.type === 'essay');
 
+        // Get apps that match ALL school tags
+        const matchingAppIds = new Set(
+            applications
+                .filter(app => schoolFilterIds.every(tagId => app.tagIds.includes(tagId)))
+                .map(app => app.id)
+        );
+
+        visibleEssays = essays.filter(essay => {
+            // Essay must match at least ONE essay tag
+            const essayHasTag = essayFilterIds.length === 0 || essayFilterIds.some(tagId => essay.tagIds.includes(tagId));
+            // Essay's application must match all school tags
+            const appHasTag = schoolFilterIds.length === 0 || matchingAppIds.has(essay.applicationId);
+            
+            // If only essay tags selected, filter by essay tags
+            if (schoolFilterIds.length === 0) return essayHasTag;
+            // If only school tags selected, filter by app tags
+            if (essayFilterIds.length === 0) return appHasTag;
+            // If both, filter by both
+            return appHasTag && essayHasTag;
+        });
+    }
+
+
+    // Apply search filter
+    if (searchQuery) {
+        const searchTerms = searchQuery.toLowerCase().split(';').map(term => term.trim()).filter(Boolean);
+        if (searchTerms.length > 0) {
+            visibleEssays = visibleEssays.filter(essay => {
+                const app = appsById.get(essay.applicationId);
+                const essayTagsList = essay.tagIds.map(id => tagsById[id]).filter(Boolean);
+                
+                return searchTerms.every(term => {
+                    return (
+                        (app && app.schoolName.toLowerCase().includes(term)) ||
+                        essay.prompt.toLowerCase().includes(term) ||
+                        essay.text.toLowerCase().includes(term) ||
+                        essayTagsList.some(tag => tag.name.toLowerCase().includes(term))
+                    );
+                });
+            });
+        }
+    }
+
+    // Apply sorting
     return [...visibleEssays].sort((a, b) => {
         const appA = appsById.get(a.applicationId);
         const appB = appsById.get(b.applicationId);
@@ -238,7 +307,7 @@ const App: React.FC = () => {
                 return 0;
         }
     });
-  }, [displayedApplications, essaysByApplicationId, applications, essaySortBy]);
+  }, [essays, applications, filterTagIds, searchQuery, tagsById, appsById, essaySortBy]);
 
   const handleToggleExpand = (appId: string) => {
     setExpandedAppIds(prev => {
@@ -619,19 +688,35 @@ const App: React.FC = () => {
   };
 
   const progressData = useMemo(() => {
+    if (currentView === 'essays') {
+        const visibleEssays = essaysForEssayView;
+        const completedEssaysCount = visibleEssays.filter(essay => essay.completed).length;
+        
+        const visibleAppIds = new Set(visibleEssays.map(e => e.applicationId));
+        const visibleApplications = applications.filter(app => visibleAppIds.has(app.id));
+        const submittedApplicationsCount = visibleApplications.filter(app => app.outcome !== Outcome.IN_PROGRESS && app.outcome !== Outcome.WITHDRAWN).length;
+
+        return {
+            submittedApplicationsCount,
+            totalApplications: visibleApplications.length,
+            completedEssaysCount,
+            totalEssays: visibleEssays.length,
+        };
+    }
+    
     const visibleApplications = displayedApplications;
-    const submittedApplicationsCount = visibleApplications.filter(app => app.outcome !== Outcome.IN_PROGRESS).length;
+    const submittedApplicationsCount = visibleApplications.filter(app => app.outcome !== Outcome.IN_PROGRESS && app.outcome !== Outcome.WITHDRAWN).length;
     
     const visibleEssays = visibleApplications.flatMap(app => essaysByApplicationId[app.id] || []);
     const completedEssaysCount = visibleEssays.filter(essay => essay.completed).length;
 
     return {
-      submittedApplicationsCount,
-      totalApplications: visibleApplications.length,
-      completedEssaysCount,
-      totalEssays: visibleEssays.length
+        submittedApplicationsCount,
+        totalApplications: visibleApplications.length,
+        completedEssaysCount,
+        totalEssays: visibleEssays.length
     }
-  }, [displayedApplications, essaysByApplicationId]);
+  }, [currentView, applications, displayedApplications, essaysForEssayView, essaysByApplicationId]);
   
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-sans">
@@ -654,21 +739,33 @@ const App: React.FC = () => {
           onSearchQueryChange={setSearchQuery}
           essayTags={essayTags}
           schoolTags={schoolTags}
-          filterTagId={filterTagId}
-          onFilterTagIdChange={setFilterTagId}
+          filterTagIds={filterTagIds}
+          onFilterTagIdsChange={setFilterTagIds}
           onExpandAll={handleExpandAll}
           onCollapseAll={handleCollapseAll}
           onExportToDocx={handleExportToDocx}
-          resultsCount={displayedApplications.length}
+          resultsCount={currentView === 'essays' ? essaysForEssayView.length : displayedApplications.length}
         />
-        <ProgressTracker
-          completedEssays={progressData.completedEssaysCount}
-          totalEssays={progressData.totalEssays}
-          submittedApplications={progressData.submittedApplicationsCount}
-          totalApplications={progressData.totalApplications}
-        />
+        
+        {currentView !== 'dashboard' && (
+          <ProgressTracker
+            completedEssays={progressData.completedEssaysCount}
+            totalEssays={progressData.totalEssays}
+            submittedApplications={progressData.submittedApplicationsCount}
+            totalApplications={progressData.totalApplications}
+          />
+        )}
+
 
         <div key={currentView} className="animate-fadeIn">
+            {currentView === 'dashboard' && (
+                <DashboardView
+                  applications={applications}
+                  essays={essays}
+                  tagsById={tagsById}
+                />
+            )}
+
             {currentView === 'list' && (
                 <ApplicationList
                   sortAndFilterKey={sortAndFilterKey}
@@ -678,7 +775,7 @@ const App: React.FC = () => {
                   schoolTags={schoolTags}
                   essayTags={essayTags}
                   expandedAppIds={expandedAppIds}
-                  filterTagId={filterTagId}
+                  filterTagIds={filterTagIds}
                   onToggleExpand={handleToggleExpand}
                   onUpdateApplication={handleUpdateApplication}
                   onRequestDeleteApplication={requestDeleteApplication}

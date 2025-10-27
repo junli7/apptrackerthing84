@@ -9,7 +9,7 @@ interface ApplicationListProps {
   schoolTags: Tag[];
   essayTags: Tag[];
   expandedAppIds: Set<string>;
-  filterTagId: string | null;
+  filterTagIds: string[];
   onToggleExpand: (appId: string) => void;
   onUpdateApplication: (app: Application) => void;
   onRequestDeleteApplication: (appId: string, appName: string) => void;
@@ -56,7 +56,7 @@ const ApplicationList: React.FC<ApplicationListProps> = (props) => {
           tagsById={props.tagsById}
           schoolTags={props.schoolTags}
           essayTags={props.essayTags}
-          filterTagId={props.filterTagId}
+          filterTagIds={props.filterTagIds}
           onUpdateApplication={props.onUpdateApplication}
           onRequestDeleteApplication={props.onRequestDeleteApplication}
           onAddEssay={props.onAddEssay}

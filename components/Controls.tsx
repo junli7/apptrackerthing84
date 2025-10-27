@@ -1,5 +1,4 @@
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Tag } from '../types';
 import SearchIcon from './icons/SearchIcon';
 import DocumentTextIcon from './icons/DocumentTextIcon';
@@ -7,10 +6,13 @@ import ArrowPathIcon from './icons/ArrowPathIcon';
 import ListBulletIcon from './icons/ListBulletIcon';
 import ViewColumnsIcon from './icons/ViewColumnsIcon';
 import GraduationCapIcon from './icons/GraduationCapIcon';
+import ChartPieIcon from './icons/ChartPieIcon';
+import FunnelIcon from './icons/FunnelIcon';
+import TagComponent from './Tag';
 
 type SortByType = 'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc';
 type EssaySortByType = 'deadline-asc' | 'schoolName-asc' | 'wordCount-asc' | 'wordCount-desc';
-type ViewType = 'list' | 'board' | 'essays';
+type ViewType = 'dashboard' | 'list' | 'board' | 'essays';
 
 interface ControlsProps {
   currentView: ViewType;
@@ -24,8 +26,8 @@ interface ControlsProps {
   onSearchQueryChange: (value: string) => void;
   essayTags: Tag[];
   schoolTags: Tag[];
-  filterTagId: string | null;
-  onFilterTagIdChange: (tagId: string | null) => void;
+  filterTagIds: string[];
+  onFilterTagIdsChange: (tagIds: string[]) => void;
   onExpandAll: () => void;
   onCollapseAll: () => void;
   onExportToDocx: () => void;
@@ -34,6 +36,7 @@ interface ControlsProps {
 
 const ViewSwitcher: React.FC<{ currentView: ViewType, onSetView: (view: ViewType) => void }> = ({ currentView, onSetView }) => {
     const views: { id: ViewType, name: string, icon: React.FC<any> }[] = [
+        { id: 'dashboard', name: 'Dashboard', icon: ChartPieIcon },
         { id: 'list', name: 'List', icon: ListBulletIcon },
         { id: 'board', name: 'Board', icon: ViewColumnsIcon },
         { id: 'essays', name: 'Essays', icon: GraduationCapIcon },
@@ -59,10 +62,92 @@ const ViewSwitcher: React.FC<{ currentView: ViewType, onSetView: (view: ViewType
     );
 };
 
+const TagFilter: React.FC<{
+    schoolTags: Tag[];
+    essayTags: Tag[];
+    selectedTagIds: string[];
+    onToggleTag: (tagId: string) => void;
+    onClear: () => void;
+}> = ({ schoolTags, essayTags, selectedTagIds, onToggleTag, onClear }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [ref]);
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors ${selectedTagIds.length > 0 ? 'text-green-700 dark:text-green-300' : 'text-zinc-600 dark:text-zinc-300'}`}
+            >
+                <FunnelIcon className="h-4 w-4" />
+                <span className="font-semibold whitespace-nowrap">Filter by Tag</span>
+                {selectedTagIds.length > 0 && (
+                    <span className="bg-green-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {selectedTagIds.length}
+                    </span>
+                )}
+            </button>
+            {isOpen && (
+                <div className="absolute top-full mt-2 w-72 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-20 p-4 animate-fadeIn">
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-bold text-zinc-800 dark:text-zinc-100">Filter Tags</h4>
+                        <button onClick={onClear} className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline">Clear</button>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto space-y-3 pr-2">
+                        <div>
+                            <h5 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">School Tags</h5>
+                            <div className="flex flex-wrap gap-2">
+                                {schoolTags.map(tag => (
+                                    <label key={tag.id} className="cursor-pointer">
+                                        <input type="checkbox" className="sr-only" checked={selectedTagIds.includes(tag.id)} onChange={() => onToggleTag(tag.id)} />
+                                        <div className={`transition-all ${selectedTagIds.includes(tag.id) ? 'ring-2 ring-green-500 ring-offset-1 dark:ring-offset-zinc-800 rounded-full' : ''}`}>
+                                            <TagComponent name={tag.name} color={tag.color} />
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                         <div>
+                            <h5 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">Essay Tags</h5>
+                             <div className="flex flex-wrap gap-2">
+                                {essayTags.map(tag => (
+                                    <label key={tag.id} className="cursor-pointer">
+                                        <input type="checkbox" className="sr-only" checked={selectedTagIds.includes(tag.id)} onChange={() => onToggleTag(tag.id)} />
+                                        <div className={`transition-all ${selectedTagIds.includes(tag.id) ? 'ring-2 ring-green-500 ring-offset-1 dark:ring-offset-zinc-800 rounded-full' : ''}`}>
+                                            <TagComponent name={tag.name} color={tag.color} />
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 const Controls: React.FC<ControlsProps> = (props) => {
-  const { currentView, onSetView, sortBy, onSortByChange, essaySortBy, onEssaySortByChange, onRefreshSort, searchQuery, onSearchQueryChange, essayTags, schoolTags, filterTagId, onFilterTagIdChange, onExpandAll, onCollapseAll, onExportToDocx, resultsCount } = props;
-  const allTags = useMemo(() => [...schoolTags, ...essayTags].sort((a,b) => a.name.localeCompare(b.name)), [schoolTags, essayTags]);
+  const { currentView, onSetView, sortBy, onSortByChange, essaySortBy, onEssaySortByChange, onRefreshSort, searchQuery, onSearchQueryChange, essayTags, schoolTags, filterTagIds, onFilterTagIdsChange, onExpandAll, onCollapseAll, onExportToDocx, resultsCount } = props;
   
+  const handleToggleTag = (tagId: string) => {
+    onFilterTagIdsChange(
+        filterTagIds.includes(tagId)
+            ? filterTagIds.filter(id => id !== tagId)
+            : [...filterTagIds, tagId]
+    );
+  };
+
   return (
     <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm flex flex-col gap-4">
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between flex-wrap">
@@ -76,13 +161,16 @@ const Controls: React.FC<ControlsProps> = (props) => {
             placeholder="Search schools, tags, essays..."
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
-            className="w-full bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md pl-10 pr-28 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md pl-10 pr-32 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             aria-label="Search applications"
           />
            {searchQuery && (
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
               <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
+                {resultsCount}{' '}
+                {currentView === 'essays'
+                  ? resultsCount === 1 ? 'essay' : 'essays'
+                  : resultsCount === 1 ? 'application' : 'applications'}
               </span>
             </div>
           )}
@@ -90,24 +178,14 @@ const Controls: React.FC<ControlsProps> = (props) => {
       </div>
        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between flex-wrap">
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <label htmlFor="filterTag" className="font-semibold text-zinc-600 dark:text-zinc-300 whitespace-nowrap">Filter by Tag:</label>
-            <select
-              id="filterTag"
-              value={filterTagId || ''}
-              onChange={(e) => onFilterTagIdChange(e.target.value || null)}
-              className="bg-zinc-100 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto"
-            >
-              <option value="">All Tags</option>
-              <optgroup label="School Tags">
-                {schoolTags.map(tag => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
-              </optgroup>
-              <optgroup label="Essay Tags">
-                {essayTags.map(tag => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
-              </optgroup>
-            </select>
-          </div>
-          {currentView !== 'board' && (
+          <TagFilter 
+            schoolTags={schoolTags}
+            essayTags={essayTags}
+            selectedTagIds={filterTagIds}
+            onToggleTag={handleToggleTag}
+            onClear={() => onFilterTagIdsChange([])}
+          />
+          {(currentView === 'list' || currentView === 'essays') && (
              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <label htmlFor="sort" className="font-semibold text-zinc-600 dark:text-zinc-300">Sort by:</label>
                 {currentView === 'list' && (

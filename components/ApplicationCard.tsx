@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -21,7 +19,7 @@ interface ApplicationCardProps {
   schoolTags: Tag[];
   essayTags: Tag[];
   isExpanded: boolean;
-  filterTagId: string | null;
+  filterTagIds: string[];
   onToggleExpand: () => void;
   onUpdateApplication: (app: Application) => void;
   onRequestDeleteApplication: (appId: string, appName: string) => void;
@@ -65,7 +63,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   isExpanded,
   onToggleExpand,
   onAddTag,
-  filterTagId,
+  filterTagIds,
   expandedEssayIds,
   onToggleEssayExpand,
   expandedSectionKeys,
@@ -128,9 +126,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     };
   }, [progressPercentage]);
   
-  const filterTag = useMemo(() => filterTagId ? tagsById[filterTagId] : null, [filterTagId, tagsById]);
-  const isEssayTagFilterActive = useMemo(() => filterTag?.type === 'essay', [filterTag]);
-
+  const essayFiltersAreActive = useMemo(() => filterTagIds.some(id => tagsById[id]?.type === 'essay'), [filterTagIds, tagsById]);
+  
   const animationStyle = { animationDelay: `${animationDelay}ms` };
 
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -189,11 +186,12 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   });
 
   const displayedEssays = useMemo(() => {
-    if (isEssayTagFilterActive) {
-      return essays.filter(essay => essay.tagIds.includes(filterTagId!));
+    if (essayFiltersAreActive) {
+        const essayFilterIds = filterTagIds.filter(id => tagsById[id]?.type === 'essay');
+        return essays.filter(essay => essay.tagIds.some(id => essayFilterIds.includes(id)));
     }
     return essays;
-  }, [essays, isEssayTagFilterActive, filterTagId]);
+  }, [essays, filterTagIds, tagsById, essayFiltersAreActive]);
   
   const isChecklistCollapsed = !expandedSectionKeys[application.id]?.has('checklist');
   const isNotesCollapsed = !expandedSectionKeys[application.id]?.has('notes');
@@ -359,7 +357,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       
       <div id={`application-details-${application.id}`} className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
-          {!isEssayTagFilterActive && (
+          {!essayFiltersAreActive && (
             <div className="p-4 md:px-6 md:py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
               <h4 className="text-sm font-semibold mr-auto text-zinc-600 dark:text-zinc-400">Sections</h4>
               <button onClick={() => onExpandAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Expand Content</button>
@@ -369,7 +367,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
           )}
           <div>
             <div className="p-4 md:p-6 space-y-4">
-              {!isEssayTagFilterActive && (
+              {!essayFiltersAreActive && (
                 <>
                   <CollapsibleSection title="Checklist" isCollapsed={isChecklistCollapsed} onToggle={() => onToggleSectionExpand(application.id, 'checklist')}>
                     <Checklist
@@ -410,7 +408,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                         onAddTag={onAddTag}
                         isExpanded={expandedEssayIds.has(essay.id)}
                         onToggleExpand={() => onToggleEssayExpand(essay.id)}
-                        isDraggable={!isEssayTagFilterActive}
+                        isDraggable={!essayFiltersAreActive}
                         isBeingDragged={draggedEssayId === essay.id}
                         onDragStart={(e) => handleDragStart(e, essay.id)}
                         onDragOver={handleDragOver}
@@ -422,13 +420,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                   </div>
                 ) : (
                   <p className="text-zinc-500 dark:text-zinc-400 italic">
-                     {isEssayTagFilterActive ? 'No essays match the selected tag.' : 'No essays added yet.'}
+                     {essayFiltersAreActive ? 'No essays match the selected tag.' : 'No essays added yet.'}
                   </p>
                 )}
               </div>
             </div>
 
-            {!isEssayTagFilterActive && (
+            {!essayFiltersAreActive && (
               <div className="p-4 md:p-6 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-700">
                 <button
                   onClick={() => onAddEssay(application.id)}
