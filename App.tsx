@@ -4,6 +4,8 @@ import { INITIAL_APPLICATIONS, INITIAL_ESSAYS, INITIAL_TAGS } from './constants'
 import Header from './components/Header';
 import Controls from './components/Controls';
 import ApplicationList from './components/ApplicationList';
+import BoardView from './components/BoardView';
+import EssayView from './components/EssayView';
 import AddSchoolModal from './components/modals/AddSchoolModal';
 import AddEssayModal from './components/modals/AddEssayModal';
 import ManageTagsModal from './components/modals/ManageTagsModal';
@@ -13,6 +15,10 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, conv
 import EssayHistoryViewerModal from './components/modals/EssayHistoryViewerModal';
 import ProgressTracker from './components/ProgressTracker';
 
+const countWords = (text: string) => {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
+};
 
 const App: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -60,11 +66,13 @@ const App: React.FC = () => {
   }, [applications, essays, tags, isInitialLoad]);
 
   // State for UI
+  const [currentView, setCurrentView] = useState<'list' | 'board' | 'essays'>('list');
   const [isAddSchoolModalOpen, setAddSchoolModalOpen] = useState(false);
   const [isAddEssayModalOpen, setAddEssayModalOpen] = useState<string | null>(null);
   const [isManageTagsModalOpen, setManageTagsModalOpen] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   const [sortBy, setSortBy] = useState<'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc'>('deadline-asc');
+  const [essaySortBy, setEssaySortBy] = useState<'deadline-asc' | 'schoolName-asc' | 'wordCount-asc' | 'wordCount-desc'>('deadline-asc');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTagId, setFilterTagId] = useState<string | null>(null);
   const [expandedAppIds, setExpandedAppIds] = useState<Set<string>>(new Set());
@@ -110,7 +118,7 @@ const App: React.FC = () => {
     if (filterTagId) {
       filtered = applications.filter(app => {
         const appEssays = essaysByApplicationId[app.id] || [];
-        return appEssays.some(essay => essay.tagIds.includes(filterTagId));
+        return app.tagIds.includes(filterTagId) || appEssays.some(essay => essay.tagIds.includes(filterTagId));
       });
     }
 
@@ -208,13 +216,29 @@ const App: React.FC = () => {
     return `${sortBy}-${filterTagId}-${searchQuery}`;
   }, [sortBy, filterTagId, searchQuery]);
 
-  useEffect(() => {
-    if (filterTagId) {
-      const newExpanded = new Set<string>();
-      displayedApplications.forEach(app => newExpanded.add(app.id));
-      setExpandedAppIds(newExpanded);
-    }
-  }, [filterTagId, displayedApplications]);
+  const essaysForEssayView = useMemo(() => {
+    const visibleEssays = displayedApplications.flatMap(app => essaysByApplicationId[app.id] || []);
+    const appsById = new Map(applications.map(app => [app.id, app]));
+
+    return [...visibleEssays].sort((a, b) => {
+        const appA = appsById.get(a.applicationId);
+        const appB = appsById.get(b.applicationId);
+        if (!appA || !appB) return 0;
+
+        switch (essaySortBy) {
+            case 'deadline-asc':
+                return new Date(appA.deadline).getTime() - new Date(appB.deadline).getTime();
+            case 'schoolName-asc':
+                return appA.schoolName.localeCompare(appB.schoolName);
+            case 'wordCount-asc':
+                return countWords(a.text) - countWords(b.text);
+            case 'wordCount-desc':
+                return countWords(b.text) - countWords(a.text);
+            default:
+                return 0;
+        }
+    });
+  }, [displayedApplications, essaysByApplicationId, applications, essaySortBy]);
 
   const handleToggleExpand = (appId: string) => {
     setExpandedAppIds(prev => {
@@ -312,6 +336,12 @@ const App: React.FC = () => {
     setApplications(prev => prev.map(app => app.id === updatedApp.id ? updatedApp : app));
   };
   
+  const handleUpdateApplicationOutcome = (appId: string, newOutcome: Outcome) => {
+    setApplications(prev => prev.map(app => 
+      app.id === appId ? { ...app, outcome: newOutcome } : app
+    ));
+  };
+
   const handleDeleteApplication = (appId: string) => {
     setApplications(prev => prev.filter(app => app.id !== appId));
     setEssays(prev => prev.filter(essay => essay.applicationId !== appId));
@@ -465,8 +495,6 @@ const App: React.FC = () => {
 
   const handleExportToDocx = () => {
     const doc = new Document({
-      // FIX: The 'sections' property expects an array of section objects ({ children: [...] }), not a flat array of Paragraphs.
-      // Changed flatMap to map and returned a section object for each application.
       sections: displayedApplications.map(app => {
         const appTags = (app.tagIds || []).map(id => tagsById[id]).filter(Boolean);
         const appEssays = essaysByApplicationId[app.id] || [];
@@ -613,17 +641,21 @@ const App: React.FC = () => {
         onExportData={handleExportData}
         onImportData={handleImportData}
       />
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <Controls
+          currentView={currentView}
+          onSetView={setCurrentView}
           sortBy={sortBy}
           onSortByChange={setSortBy}
+          essaySortBy={essaySortBy}
+          onEssaySortByChange={setEssaySortBy}
           onRefreshSort={handleRefreshSort}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           essayTags={essayTags}
+          schoolTags={schoolTags}
           filterTagId={filterTagId}
           onFilterTagIdChange={setFilterTagId}
-          onOpenManageTags={() => setManageTagsModalOpen(true)}
           onExpandAll={handleExpandAll}
           onCollapseAll={handleCollapseAll}
           onExportToDocx={handleExportToDocx}
@@ -635,36 +667,66 @@ const App: React.FC = () => {
           submittedApplications={progressData.submittedApplicationsCount}
           totalApplications={progressData.totalApplications}
         />
-        <ApplicationList
-          sortAndFilterKey={sortAndFilterKey}
-          applications={displayedApplications}
-          essaysByApplicationId={essaysByApplicationId}
-          tagsById={tagsById}
-          schoolTags={schoolTags}
-          essayTags={essayTags}
-          expandedAppIds={expandedAppIds}
-          filterTagId={filterTagId}
-          onToggleExpand={handleToggleExpand}
-          onUpdateApplication={handleUpdateApplication}
-          onRequestDeleteApplication={requestDeleteApplication}
-          onAddEssay={(appId) => setAddEssayModalOpen(appId)}
-          onUpdateEssay={handleUpdateEssay}
-          onToggleEssayComplete={handleToggleEssayComplete}
-          onCommitEssayHistory={handleCommitEssayHistory}
-          onRequestDeleteEssay={requestDeleteEssay}
-          onReorderEssays={handleReorderEssays}
-          onAddTask={handleAddTask}
-          onToggleTask={handleToggleTask}
-          onRequestDeleteTask={requestDeleteTask}
-          onAddTag={handleAddTag}
-          expandedEssayIds={expandedEssayIds}
-          onToggleEssayExpand={handleToggleEssayExpand}
-          expandedSectionKeys={expandedSectionKeys}
-          onToggleSectionExpand={handleToggleSectionExpand}
-          onExpandAppContent={handleExpandAppContent}
-          onCollapseAppContent={handleCollapseAppContent}
-          onOpenHistoryViewer={(version) => setEssayHistoryViewer({ isOpen: true, version })}
-        />
+
+        <div key={currentView} className="animate-fadeIn">
+            {currentView === 'list' && (
+                <ApplicationList
+                  sortAndFilterKey={sortAndFilterKey}
+                  applications={displayedApplications}
+                  essaysByApplicationId={essaysByApplicationId}
+                  tagsById={tagsById}
+                  schoolTags={schoolTags}
+                  essayTags={essayTags}
+                  expandedAppIds={expandedAppIds}
+                  filterTagId={filterTagId}
+                  onToggleExpand={handleToggleExpand}
+                  onUpdateApplication={handleUpdateApplication}
+                  onRequestDeleteApplication={requestDeleteApplication}
+                  onAddEssay={(appId) => setAddEssayModalOpen(appId)}
+                  onUpdateEssay={handleUpdateEssay}
+                  onToggleEssayComplete={handleToggleEssayComplete}
+                  onCommitEssayHistory={handleCommitEssayHistory}
+                  onRequestDeleteEssay={requestDeleteEssay}
+                  onReorderEssays={handleReorderEssays}
+                  onAddTask={handleAddTask}
+                  onToggleTask={handleToggleTask}
+                  onRequestDeleteTask={requestDeleteTask}
+                  onAddTag={handleAddTag}
+                  expandedEssayIds={expandedEssayIds}
+                  onToggleEssayExpand={handleToggleEssayExpand}
+                  expandedSectionKeys={expandedSectionKeys}
+                  onToggleSectionExpand={handleToggleSectionExpand}
+                  onExpandAppContent={handleExpandAppContent}
+                  onCollapseAppContent={handleCollapseAppContent}
+                  onOpenHistoryViewer={(version) => setEssayHistoryViewer({ isOpen: true, version })}
+                />
+            )}
+            
+            {currentView === 'board' && (
+                <BoardView
+                    applications={displayedApplications}
+                    tagsById={tagsById}
+                    onUpdateApplicationOutcome={handleUpdateApplicationOutcome}
+                />
+            )}
+
+            {currentView === 'essays' && (
+                 <EssayView
+                    essays={essaysForEssayView}
+                    applications={applications}
+                    tagsById={tagsById}
+                    essayTags={essayTags}
+                    onUpdateEssay={handleUpdateEssay}
+                    onToggleEssayComplete={handleToggleEssayComplete}
+                    onCommitEssayHistory={handleCommitEssayHistory}
+                    onRequestDeleteEssay={requestDeleteEssay}
+                    onAddTag={handleAddTag}
+                    expandedEssayIds={expandedEssayIds}
+                    onToggleEssayExpand={handleToggleEssayExpand}
+                    onOpenHistoryViewer={(version) => setEssayHistoryViewer({ isOpen: true, version })}
+                 />
+            )}
+        </div>
       </main>
 
       {isAddSchoolModalOpen && (
@@ -689,7 +751,6 @@ const App: React.FC = () => {
           tags={tags}
           onClose={() => setManageTagsModalOpen(false)}
           onAddTag={handleAddTag}
-          // Fix: Pass the correct 'handleUpdateTag' function to the onUpdateTag prop.
           onUpdateTag={handleUpdateTag}
           onRequestDeleteTag={requestDeleteTag}
         />

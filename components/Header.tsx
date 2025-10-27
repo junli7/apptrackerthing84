@@ -3,6 +3,7 @@ import PlusIcon from './icons/PlusIcon';
 import PencilIcon from './icons/PencilIcon';
 import ArrowUpTrayIcon from './icons/ArrowUpTrayIcon';
 import ArrowDownTrayIcon from './icons/ArrowDownTrayIcon';
+import GraduationCapIcon from './icons/GraduationCapIcon';
 
 interface HeaderProps {
   onAddSchool: () => void;
@@ -14,31 +15,39 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onAddSchool, onOpenManageTags, onImportData, onExportData }) => {
   return (
     <header className="bg-white dark:bg-zinc-800 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center gap-3">
-            <span role="img" aria-label="Skull emoji" className="text-3xl">💀</span>
+            <GraduationCapIcon className="h-8 w-8 text-zinc-700 dark:text-zinc-300" />
             <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
-              le tracker
+              Application Tracker
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={onImportData}
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
+              className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
               title="Import Data"
             >
               <ArrowDownTrayIcon className="h-5 w-5" />
-              <span className="hidden sm:inline">Import Data</span>
+              <span className="hidden sm:inline">Import</span>
             </button>
 
             <button
               onClick={onExportData}
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
+              className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
               title="Export Data"
             >
               <ArrowUpTrayIcon className="h-5 w-5" />
-              <span className="hidden sm:inline">Export Data</span>
+              <span className="hidden sm:inline">Export</span>
+            </button>
+             <button
+              onClick={onOpenManageTags}
+              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-3 py-2 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
+              title="Manage Tags"
+            >
+              <PencilIcon className="h-5 w-5" />
+              <span className="hidden sm:inline">Manage Tags</span>
             </button>
             
             <button

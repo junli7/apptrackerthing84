@@ -24,13 +24,16 @@ interface EssayItemProps {
   onAddTag: (name: string, color: string, type: 'school' | 'essay') => Tag;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  isDraggable: boolean;
-  isBeingDragged: boolean;
-  onDragStart: (e: React.DragEvent) => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent) => void;
-  onDragEnd: (e: React.DragEvent) => void;
+  isDraggable?: boolean;
+  isBeingDragged?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
   onOpenHistoryViewer: (version: EssayVersion) => void;
+  schoolName?: string;
+  applicationDeadline?: string;
+  animationDelay?: number;
 }
 
 const countWords = (text: string) => {
@@ -55,6 +58,9 @@ const EssayItem: React.FC<EssayItemProps> = ({
     onDrop,
     onDragEnd,
     onOpenHistoryViewer,
+    schoolName,
+    applicationDeadline,
+    animationDelay,
 }) => {
   const [text, setText] = useState(essay.text);
   const [wordCount, setWordCount] = useState(countWords(essay.text));
@@ -139,10 +145,22 @@ const EssayItem: React.FC<EssayItemProps> = ({
     onUpdateEssay({ ...essay, text: versionText });
     setHistoryVisible(false); // Optionally close history after restoring
   };
+
+  const formattedDeadline = applicationDeadline ? new Date(applicationDeadline + 'T00:00:00').toLocaleDateString(undefined, {
+    month: 'long', day: 'numeric'
+  }) : '';
+  
+  const animationStyle = animationDelay !== undefined ? { animationDelay: `${animationDelay}ms` } : {};
+  const animationClass = animationDelay !== undefined ? 'animate-fadeInUp' : '';
+
+  const containerClass = schoolName 
+    ? 'bg-white dark:bg-zinc-800 rounded-lg shadow-sm'
+    : `bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-opacity ${isBeingDragged ? 'opacity-50' : 'opacity-100'}`;
   
   return (
     <div 
-        className={`bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-opacity ${isBeingDragged ? 'opacity-50' : 'opacity-100'}`}
+        style={animationStyle}
+        className={`${containerClass} ${animationClass}`}
         draggable={isDraggable && !isEditing}
         onDragStart={isDraggable ? onDragStart : undefined}
         onDragOver={isDraggable ? onDragOver : undefined}
@@ -159,6 +177,12 @@ const EssayItem: React.FC<EssayItemProps> = ({
             </div>
         )}
         <div className="flex-grow pr-4">
+          {schoolName && (
+            <div className="mb-2">
+              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{schoolName}</p>
+              {applicationDeadline && <p className="text-xs text-zinc-500 dark:text-zinc-400">Deadline: {formattedDeadline}</p>}
+            </div>
+          )}
           {isEditing ? (
               <div onClick={(e) => e.stopPropagation()}>
                 <textarea 

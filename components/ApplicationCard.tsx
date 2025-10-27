@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -127,7 +128,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     };
   }, [progressPercentage]);
   
-  const isEssayFilterActive = !!filterTagId;
+  const filterTag = useMemo(() => filterTagId ? tagsById[filterTagId] : null, [filterTagId, tagsById]);
+  const isEssayTagFilterActive = useMemo(() => filterTag?.type === 'essay', [filterTag]);
 
   const animationStyle = { animationDelay: `${animationDelay}ms` };
 
@@ -187,11 +189,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   });
 
   const displayedEssays = useMemo(() => {
-    if (!filterTagId) {
-      return essays;
+    if (isEssayTagFilterActive) {
+      return essays.filter(essay => essay.tagIds.includes(filterTagId!));
     }
-    return essays.filter(essay => essay.tagIds.includes(filterTagId));
-  }, [essays, filterTagId]);
+    return essays;
+  }, [essays, isEssayTagFilterActive, filterTagId]);
   
   const isChecklistCollapsed = !expandedSectionKeys[application.id]?.has('checklist');
   const isNotesCollapsed = !expandedSectionKeys[application.id]?.has('notes');
@@ -278,36 +280,26 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     <TagComponent key={tag.id} name={tag.name} color={tag.color} />
                   ))}
                 </div>
-                {(totalEssaysCount > 0 || totalTasks > 0) && (
-                  <div className="flex items-end justify-between gap-4 mt-4">
-                    {/* Essay Count */}
-                    <div className="flex-shrink-0">
-                      {totalEssaysCount > 0 && (
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                          {completedEssaysCount} / {totalEssaysCount} Essays
-                        </p>
-                      )}
+                 {totalEssaysCount > 0 && (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+                      {completedEssaysCount} / {totalEssaysCount} Essays 
+                  </p>
+                )}
+                {totalTasks > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-end items-baseline mb-1">
+                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{completedTasks} / {totalTasks}</span>
                     </div>
-                    {/* Overall Progress Bar */}
-                    <div className="flex-grow">
-                      {totalTasks > 0 && (
-                        <>
-                          <div className="flex justify-end items-baseline mb-1">
-                            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{completedTasks} / {totalTasks}</span>
-                          </div>
-                          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
-                              style={{ width: `${progressPercentage}%` }}
-                              role="progressbar"
-                              aria-valuenow={completedTasks}
-                              aria-valuemin={0}
-                              aria-valuemax={totalTasks}
-                              aria-label="Overall progress for checklist items and essays"
-                            ></div>
-                          </div>
-                        </>
-                      )}
+                    <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progressPercentage}%` }}
+                        role="progressbar"
+                        aria-valuenow={completedTasks}
+                        aria-valuemin={0}
+                        aria-valuemax={totalTasks}
+                        aria-label="Overall progress for checklist items and essays"
+                      ></div>
                     </div>
                   </div>
                 )}
@@ -367,7 +359,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       
       <div id={`application-details-${application.id}`} className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
-          {!isEssayFilterActive && (
+          {!isEssayTagFilterActive && (
             <div className="p-4 md:px-6 md:py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
               <h4 className="text-sm font-semibold mr-auto text-zinc-600 dark:text-zinc-400">Sections</h4>
               <button onClick={() => onExpandAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Expand Content</button>
@@ -377,7 +369,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
           )}
           <div>
             <div className="p-4 md:p-6 space-y-4">
-              {!isEssayFilterActive && (
+              {!isEssayTagFilterActive && (
                 <>
                   <CollapsibleSection title="Checklist" isCollapsed={isChecklistCollapsed} onToggle={() => onToggleSectionExpand(application.id, 'checklist')}>
                     <Checklist
@@ -418,7 +410,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                         onAddTag={onAddTag}
                         isExpanded={expandedEssayIds.has(essay.id)}
                         onToggleExpand={() => onToggleEssayExpand(essay.id)}
-                        isDraggable={!isEssayFilterActive}
+                        isDraggable={!isEssayTagFilterActive}
                         isBeingDragged={draggedEssayId === essay.id}
                         onDragStart={(e) => handleDragStart(e, essay.id)}
                         onDragOver={handleDragOver}
@@ -430,13 +422,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                   </div>
                 ) : (
                   <p className="text-zinc-500 dark:text-zinc-400 italic">
-                     {filterTagId ? 'No essays match the selected tag.' : 'No essays added yet.'}
+                     {isEssayTagFilterActive ? 'No essays match the selected tag.' : 'No essays added yet.'}
                   </p>
                 )}
               </div>
             </div>
 
-            {!isEssayFilterActive && (
+            {!isEssayTagFilterActive && (
               <div className="p-4 md:p-6 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-700">
                 <button
                   onClick={() => onAddEssay(application.id)}

@@ -10,8 +10,7 @@
     "lint": "tsc",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "clean-deploy-cache": "rimraf ./node_modules/.cache/gh-pages",
-    "deploy": "npm run clean-deploy-cache && gh-pages -d dist"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "docx": "^9.5.1",
@@ -25,7 +24,6 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^5.0.4",
     "gh-pages": "^6.1.1",
-    "rimraf": "^5.0.7",
     "typescript": "^5.5.3",
     "vite": "^7.1.9"
   }
