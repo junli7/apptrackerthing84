@@ -21,6 +21,16 @@ export const OUTCOME_COLORS: { [key in Outcome]: string } = {
   [Outcome.WITHDRAWN]: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
 };
 
+export const OUTCOME_BG_CLASSES_SOLID: { [key in Outcome]: string } = {
+  [Outcome.IN_PROGRESS]: 'bg-zinc-500',
+  [Outcome.SUBMITTED]: 'bg-green-500',
+  [Outcome.ACCEPTED]: 'bg-green-600',
+  [Outcome.REJECTED]: 'bg-red-600',
+  [Outcome.WAITLISTED]: 'bg-yellow-500',
+  [Outcome.DEFERRED]: 'bg-amber-500',
+  [Outcome.WITHDRAWN]: 'bg-gray-400',
+};
+
 // Fix: Removed TAG_COLORS constant and TagColor type as they have been moved to types.ts to prevent circular dependencies.
 
 export const TAG_COLOR_CLASSES: Record<TagColor | 'zinc', string> = {

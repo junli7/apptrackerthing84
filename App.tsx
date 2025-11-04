@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Application, Essay, Tag, Outcome, ChecklistItem, EssayVersion } from './types';
 import { INITIAL_APPLICATIONS, INITIAL_ESSAYS, INITIAL_TAGS } from './constants';
@@ -22,6 +23,9 @@ const countWords = (text: string) => {
   if (!text) return 0;
   return text.trim().split(/\s+/).filter(Boolean).length;
 };
+
+type ViewType = 'dashboard' | 'list' | 'board' | 'essays';
+const VALID_VIEWS: ViewType[] = ['dashboard', 'list', 'board', 'essays'];
 
 const App: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -69,7 +73,7 @@ const App: React.FC = () => {
   }, [applications, essays, tags, isInitialLoad]);
 
   // State for UI
-  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'board' | 'essays'>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [isAddSchoolModalOpen, setAddSchoolModalOpen] = useState(false);
   const [isAddEssayModalOpen, setAddEssayModalOpen] = useState<string | null>(null);
   const [isManageTagsModalOpen, setManageTagsModalOpen] = useState(false);
@@ -84,6 +88,36 @@ const App: React.FC = () => {
   const [essayHistoryViewer, setEssayHistoryViewer] = useState<{ isOpen: boolean, version: EssayVersion | null }>({ isOpen: false, version: null });
   const [sortTrigger, setSortTrigger] = useState(0);
   const [scrollToAppId, setScrollToAppId] = useState<string | null>(null);
+
+  // Sync state TO URL hash
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#/', '');
+    if (currentView !== currentHash) {
+      window.location.hash = `/${currentView}`;
+    }
+  }, [currentView]);
+
+  // Sync URL hash TO state (for back/forward buttons and initial load)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hashView = window.location.hash.replace('#/', '') as ViewType;
+      if (VALID_VIEWS.includes(hashView)) {
+        setCurrentView(prevState => {
+          if (prevState !== hashView) {
+            return hashView;
+          }
+          return prevState;
+        });
+      } else {
+        setCurrentView('dashboard');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Sync on initial load
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []); // Run only on mount
 
   const handleRefreshSort = useCallback(() => {
     setSortTrigger(c => c + 1);
@@ -313,6 +347,16 @@ const App: React.FC = () => {
   }, [essays, applications, filterTagIds, searchQuery, tagsById, appsById, essaySortBy]);
 
   const handleSelectApplicationFromBoard = useCallback((appId: string) => {
+    setCurrentView('list');
+    setExpandedAppIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(appId);
+        return newSet;
+    });
+    setScrollToAppId(appId);
+  }, []);
+
+  const handleSelectApplicationFromDashboard = useCallback((appId: string) => {
     setCurrentView('list');
     setExpandedAppIds(prev => {
         const newSet = new Set(prev);
@@ -780,6 +824,7 @@ const App: React.FC = () => {
                   applications={applications}
                   essays={essays}
                   tagsById={tagsById}
+                  onSelectApplication={handleSelectApplicationFromDashboard}
                 />
             )}
 
@@ -833,6 +878,7 @@ const App: React.FC = () => {
                     applications={applications}
                     tagsById={tagsById}
                     essayTags={essayTags}
+                    // Fix: Pass the `handleUpdateEssay` function instead of the undefined `onUpdateEssay` variable.
                     onUpdateEssay={handleUpdateEssay}
                     onToggleEssayComplete={handleToggleEssayComplete}
                     onCommitEssayHistory={handleCommitEssayHistory}
