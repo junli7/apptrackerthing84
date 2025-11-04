@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { Application, Tag, Outcome } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -26,7 +27,7 @@ const BoardCard: React.FC<BoardCardProps> = ({ application, tags, animationDelay
             draggable 
             onDragStart={handleDragStart}
             onClick={() => onSelectApplication(application.id)}
-            className="bg-white dark:bg-zinc-700 p-3 rounded-md shadow-sm border border-zinc-200 dark:border-zinc-600 cursor-grab active:cursor-grabbing animate-fadeInUp"
+            className="bg-white dark:bg-zinc-700 p-3 rounded-md shadow-sm border border-zinc-200 dark:border-zinc-600 cursor-pointer hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-500 transition-all duration-300 ease-in-out active:cursor-grabbing animate-fadeInUp hover:-translate-y-1"
         >
             <h4 className="font-semibold text-zinc-800 dark:text-zinc-100 text-sm">{application.schoolName}</h4>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -73,12 +74,12 @@ const BoardColumn: React.FC<BoardColumnProps> = ({ outcome, applications, tagsBy
     return (
         <div 
             style={{ animationDelay: `${animationDelay}ms` }}
-            className={`w-72 md:w-80 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 rounded-lg h-full transition-colors animate-fadeInUp ${isDragOver ? 'bg-green-100 dark:bg-green-900/50' : ''}`}
+            className={`w-72 md:w-80 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 rounded-lg h-full transition-all duration-300 ease-in-out animate-fadeInUp ${isDragOver ? 'bg-green-50 dark:bg-green-900/30 ring-2 ring-green-500 ring-inset' : ''}`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
         >
-            <div className="p-3 sticky top-0 bg-zinc-100 dark:bg-zinc-800 rounded-t-lg z-10">
+            <div className="p-3 sticky top-0 bg-zinc-100/75 dark:bg-zinc-800/75 backdrop-blur-sm rounded-t-lg z-10 border-b border-zinc-200 dark:border-zinc-700">
                 <h3 className={`text-sm font-bold flex items-center gap-2 px-2`}>
                     <span className={`${OUTCOME_COLORS[outcome]} px-2 py-0.5 rounded-md`}>{outcome}</span>
                     <span className="text-zinc-400 dark:text-zinc-500">{applications.length}</span>

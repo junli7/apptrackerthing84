@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { TAG_COLOR_CLASSES } from '../constants';
 import { TagColor } from '../types';

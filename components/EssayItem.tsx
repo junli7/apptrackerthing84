@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Essay, Tag, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import TagComponent from './Tag';
@@ -155,7 +156,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
 
   const containerClass = schoolName 
     ? 'bg-white dark:bg-zinc-800 rounded-lg shadow-sm'
-    : `bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-opacity ${isBeingDragged ? 'opacity-50' : 'opacity-100'}`;
+    : `bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 ${isBeingDragged ? 'opacity-50' : 'opacity-100'}`;
   
   return (
     <div 
@@ -168,7 +169,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
         onDragEnd={isDraggable ? onDragEnd : undefined}
     >
       <div
-        className={`flex items-start p-4 ${!isEditing ? 'cursor-pointer' : ''}`}
+        className={`flex items-start p-4 rounded-t-lg transition-colors ${!isEditing ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}`}
         onClick={handleWrapperClick}
       >
         {isDraggable && (
@@ -291,7 +292,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
            <h4 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 pt-3 mb-2">Version History</h4>
            <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
               {essay.history.map((version, index) => (
-                <div key={index} className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-md flex justify-between items-center">
+                <div key={index} className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-md flex justify-between items-center transition-all duration-150 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:shadow-md">
                    <button 
                     onClick={() => onOpenHistoryViewer(version)} 
                     className="text-left flex-grow hover:underline focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 rounded-md p-1 -m-1"
@@ -314,7 +315,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
 
       <div className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
-          <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-700">
+          <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-100/50 dark:bg-black/20">
             <textarea
               ref={textareaRef}
               value={text}
@@ -327,7 +328,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onCommitEssayHistory(essay.id, text)}
-                  className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 font-semibold px-3 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 font-semibold px-3 py-1 rounded-md hover:bg-zinc-100/50 dark:hover:bg-zinc-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
                   aria-label="Commit to history"
                 >
                   <BookmarkSquareIcon className="h-4 w-4" />
@@ -337,7 +338,7 @@ const EssayItem: React.FC<EssayItemProps> = ({
                   onClick={() => onToggleEssayComplete(essay.id)}
                   className={`flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${essay.completed 
                       ? 'text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900' 
-                      : 'text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-zinc-100 dark:hover:bg-zinc-700/50'}`}
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-700/50'}`}
                 >
                   <CheckIcon className="h-4 w-4" />
                   {essay.completed ? 'Mark as In-Progress' : 'Mark as Complete'}

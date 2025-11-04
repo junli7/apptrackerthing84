@@ -6,6 +6,7 @@ import PlusIcon from '../icons/PlusIcon';
 import TrashIcon from '../icons/TrashIcon';
 import PencilIcon from '../icons/PencilIcon';
 import CheckIcon from '../icons/CheckIcon';
+import XMarkIcon from '../icons/XMarkIcon';
 import ModalWrapper from './ModalWrapper';
 
 interface ManageTagsModalProps {
@@ -60,6 +61,40 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
   const schoolTags = tags.filter(t => t.type === 'school').sort((a, b) => a.name.localeCompare(b.name));
   const essayTags = tags.filter(t => t.type === 'essay').sort((a, b) => a.name.localeCompare(b.name));
   
+  const renderTagList = (tagList: Tag[]) => (
+    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+      {tagList.map(tag => (
+        <div key={tag.id} className="p-2 rounded-md bg-zinc-50 dark:bg-zinc-900/50">
+          {editingTagId === tag.id ? (
+            <div className="flex flex-col gap-2 animate-fadeIn">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editingTagName}
+                  onChange={(e) => setEditingTagName(e.target.value)}
+                  className="flex-grow px-2 py-1 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-green-500"
+                />
+                <button onClick={handleSaveEdit} className="p-1.5 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-full"><CheckIcon className="h-4 w-4"/></button>
+                <button onClick={handleCancelEdit} className="p-1.5 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><XMarkIcon className="h-4 w-4"/></button>
+              </div>
+              <div>
+                <ColorPicker selectedColor={editingTagColor} onSelectColor={setEditingTagColor} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="flex-grow">
+                <TagComponent name={tag.name} color={tag.color} />
+              </div>
+              <button onClick={() => handleStartEdit(tag)} className="p-1.5 text-zinc-500 hover:text-green-600 dark:hover:text-green-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><PencilIcon className="h-4 w-4"/></button>
+              <button onClick={() => onRequestDeleteTag(tag.id, tag.name)} className="p-1.5 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><TrashIcon className="h-4 w-4"/></button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
      <ModalWrapper onClose={onClose} widthClass="max-w-3xl">
           <div className="p-6">
@@ -68,38 +103,8 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
               {/* School Tags Section */}
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-3 border-b border-zinc-200 dark:border-zinc-700 pb-2">School Tags</h3>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {schoolTags.map(tag => (
-                    <div key={tag.id} className="p-2 rounded-md bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-2">
-                      {editingTagId === tag.id ? (
-                        <>
-                          <input 
-                            type="text"
-                            value={editingTagName}
-                            onChange={(e) => setEditingTagName(e.target.value)}
-                            className="flex-grow px-2 py-1 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-green-500"
-                          />
-                          <button onClick={handleSaveEdit} className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-full"><CheckIcon className="h-5 w-5"/></button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex-grow">
-                            <TagComponent name={tag.name} color={tag.color} />
-                          </div>
-                          <button onClick={() => handleStartEdit(tag)} className="p-1.5 text-zinc-500 hover:text-green-600 dark:hover:text-green-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><PencilIcon className="h-4 w-4"/></button>
-                          <button onClick={() => onRequestDeleteTag(tag.id, tag.name)} className="p-1.5 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><TrashIcon className="h-4 w-4"/></button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {editingTagId && schoolTags.some(t => t.id === editingTagId) && (
-                  <div className="p-3 mt-2 rounded-md bg-zinc-50 dark:bg-zinc-900/50">
-                    <ColorPicker selectedColor={editingTagColor} onSelectColor={setEditingTagColor} />
-                    <button onClick={handleCancelEdit} className="text-xs text-zinc-500 hover:underline mt-2">Cancel Edit</button>
-                  </div>
-                )}
-                 <div className="mt-4">
+                {renderTagList(schoolTags)}
+                <div className="mt-4">
                   <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Create New School Tag</h4>
                   <div className="flex gap-2 items-center">
                     <input
@@ -119,31 +124,8 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
               {/* Essay Tags Section */}
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-3 border-b border-zinc-200 dark:border-zinc-700 pb-2">Essay Tags</h3>
-                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {essayTags.map(tag => (
-                    <div key={tag.id} className="p-2 rounded-md bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-2">
-                      {editingTagId === tag.id ? (
-                         <>
-                          <input type="text" value={editingTagName} onChange={(e) => setEditingTagName(e.target.value)} className="flex-grow px-2 py-1 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md shadow-sm focus:outline-none focus:ring-green-500"/>
-                          <button onClick={handleSaveEdit} className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-full"><CheckIcon className="h-5 w-5"/></button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex-grow"><TagComponent name={tag.name} color={tag.color} /></div>
-                          <button onClick={() => handleStartEdit(tag)} className="p-1.5 text-zinc-500 hover:text-green-600 dark:hover:text-green-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><PencilIcon className="h-4 w-4"/></button>
-                          <button onClick={() => onRequestDeleteTag(tag.id, tag.name)} className="p-1.5 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><TrashIcon className="h-4 w-4"/></button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                 {editingTagId && essayTags.some(t => t.id === editingTagId) && (
-                  <div className="p-3 mt-2 rounded-md bg-zinc-50 dark:bg-zinc-900/50">
-                    <ColorPicker selectedColor={editingTagColor} onSelectColor={setEditingTagColor} />
-                    <button onClick={handleCancelEdit} className="text-xs text-zinc-500 hover:underline mt-2">Cancel Edit</button>
-                  </div>
-                )}
-                 <div className="mt-4">
+                {renderTagList(essayTags)}
+                <div className="mt-4">
                   <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Create New Essay Tag</h4>
                   <div className="flex gap-2 items-center">
                     <input type="text" value={newEssayTagName} onChange={(e) => setNewEssayTagName(e.target.value)}
@@ -158,7 +140,6 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ tags, onClose, onAddT
                   <div className="mt-3"><ColorPicker selectedColor={newEssayTagColor} onSelectColor={setNewEssayTagColor} /></div>
                 </div>
               </div>
-
             </div>
           </div>
           <div className="bg-zinc-50 dark:bg-zinc-700/50 px-6 py-3 flex justify-end">

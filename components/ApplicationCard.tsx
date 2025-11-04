@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Application, Essay, Tag, Outcome, TAG_COLORS, TagColor, EssayVersion } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_COLORS } from '../constants';
@@ -11,6 +12,8 @@ import PencilIcon from './icons/PencilIcon';
 import CheckIcon from './icons/CheckIcon';
 import XMarkIcon from './icons/XMarkIcon';
 import TagComponent from './Tag';
+import ArrowsPointingOutIcon from './icons/ArrowsPointingOutIcon';
+import ArrowsPointingInIcon from './icons/ArrowsPointingInIcon';
 
 interface ApplicationCardProps {
   application: Application;
@@ -122,17 +125,19 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
       hue = 60 + ((progressPercentage - 50) / 50) * 60;
     }
     
-    // For light mode: a more vibrant, saturated tint
-    const lightColor = `hsl(${hue} 100% 92%)`;
+    const lightColorStart = `hsl(${hue}, 100%, 92%)`;
+    const lightColorEnd = `hsl(${hue}, 100%, 96%)`;
 
-    // For dark mode: a more vibrant, dark tint
-    const darkColor = `hsl(${hue} 45% 20%)`;
+    const darkColorStart = `hsl(${hue}, 45%, 20%)`;
+    const darkColorEnd = `hsl(${hue}, 50%, 24%)`;
 
     return {
-      cardBgClass: 'bg-[var(--card-bg-light)] dark:bg-[var(--card-bg-dark)]',
+      cardBgClass: 'bg-gradient-to-br from-[var(--card-bg-light-start)] to-[var(--card-bg-light-end)] dark:from-[var(--card-bg-dark-start)] dark:to-[var(--card-bg-dark-end)]',
       cardBgStyle: {
-        '--card-bg-light': lightColor,
-        '--card-bg-dark': darkColor,
+        '--card-bg-light-start': lightColorStart,
+        '--card-bg-light-end': lightColorEnd,
+        '--card-bg-dark-start': darkColorStart,
+        '--card-bg-dark-end': darkColorEnd,
       } as React.CSSProperties,
     };
   }, [progressPercentage]);
@@ -231,7 +236,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   };
 
   return (
-    <div id={`application-card-${application.id}`} style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${animationClass}`}>
+    <div id={`application-card-${application.id}`} style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-2 hover:brightness-[1.02] dark:hover:brightness-[1.15] ${animationClass}`}>
       <div
         role="button"
         tabIndex={isEditing ? -1 : 0}
@@ -302,7 +307,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                     </div>
                     <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${progressPercentage}%` }}
                         role="progressbar"
                         aria-valuenow={completedTasks}
@@ -372,9 +377,14 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
           {!essayFiltersAreActive && (
             <div className="p-4 md:px-6 md:py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
               <h4 className="text-sm font-semibold mr-auto text-zinc-600 dark:text-zinc-400">Sections</h4>
-              <button onClick={() => onExpandAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Expand Content</button>
-              <span className="text-zinc-300 dark:text-zinc-600">|</span>
-              <button onClick={() => onCollapseAppContent(application.id)} className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150">Collapse Content</button>
+              <button onClick={() => onExpandAppContent(application.id)} className="flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-transparent text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors duration-150">
+                <ArrowsPointingOutIcon className="h-4 w-4 mr-1.5" />
+                Expand Content
+              </button>
+              <button onClick={() => onCollapseAppContent(application.id)} className="flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-transparent text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors duration-150">
+                <ArrowsPointingInIcon className="h-4 w-4 mr-1.5" />
+                Collapse Content
+              </button>
             </div>
           )}
           <div>

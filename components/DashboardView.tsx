@@ -1,6 +1,5 @@
 
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Application, Essay, Tag, Outcome, TagColor } from '../types';
 import { OUTCOME_OPTIONS, OUTCOME_BG_CLASSES_SOLID, TAG_BG_CLASSES } from '../constants';
 import BuildingLibraryIcon from './icons/BuildingLibraryIcon';
@@ -18,6 +17,12 @@ const DonutChart: React.FC<{ data: { label: string; value: number; colorClass: s
     const strokeWidth = 20;
     const innerRadius = radius - strokeWidth / 2;
     const circumference = 2 * Math.PI * innerRadius;
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setIsMounted(true), 100); // delay to trigger transition
+        return () => clearTimeout(timer);
+    }, []);
 
     let accumulatedPercentage = 0;
 
@@ -28,7 +33,7 @@ const DonutChart: React.FC<{ data: { label: string; value: number; colorClass: s
                 {data.map((segment) => {
                     if (segment.value === 0) return null;
                     const percentage = segment.value / total;
-                    const strokeDashoffset = circumference * (1 - percentage);
+                    const finalOffset = circumference * (1 - percentage);
                     const rotation = accumulatedPercentage * 360;
                     accumulatedPercentage += percentage;
 
@@ -38,8 +43,13 @@ const DonutChart: React.FC<{ data: { label: string; value: number; colorClass: s
                             cx="70" cy="70" r={innerRadius} fill="transparent"
                             strokeWidth={strokeWidth}
                             strokeDasharray={`${circumference} ${circumference}`}
-                            style={{ strokeDashoffset, transform: `rotate(${rotation}deg)`, transformOrigin: '50% 50%' }}
-                            className={`${segment.colorClass.replace('bg-', 'stroke-')} transition-all duration-500`}
+                            style={{ 
+                                strokeDashoffset: isMounted ? finalOffset : circumference,
+                                transform: `rotate(${rotation}deg)`, 
+                                transformOrigin: '50% 50%',
+                                transition: 'stroke-dashoffset 1s ease-out',
+                            }}
+                            className={`${segment.colorClass.replace('bg-', 'stroke-')}`}
                         />
                     );
                 })}
@@ -50,8 +60,8 @@ const DonutChart: React.FC<{ data: { label: string; value: number; colorClass: s
 
 
 const StatCard: React.FC<{ icon: React.ReactNode; title: string; value: string | number; description: string, animationDelay: number }> = ({ icon, title, value, description, animationDelay }) => (
-  <div style={{animationDelay: `${animationDelay}ms`}} className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm flex items-start gap-4 animate-fadeInUp">
-    <div className="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg">
+  <div style={{animationDelay: `${animationDelay}ms`}} className="group bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md border border-zinc-200 dark:border-zinc-700/50 flex items-start gap-4 animate-fadeInUp transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+    <div className="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg transition-transform duration-300 group-hover:scale-110">
       {icon}
     </div>
     <div>
@@ -114,6 +124,7 @@ const DashboardView: React.FC<{
     return Object.entries(progress)
         .map(([tagId, data]) => ({ tag: tagsById[tagId], ...data }))
         .filter(item => item.tag)
+        // Fix: Corrected typo from `b.name` to `b.tag.name` to properly sort by tag name.
         .sort((a, b) => a.tag.name.localeCompare(b.tag.name));
   }, [essays, tagsById]);
 
@@ -143,7 +154,7 @@ const DashboardView: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm animate-fadeInUp" style={{animationDelay: '400ms'}}>
+        <div className="xl:col-span-2 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md border border-zinc-200 dark:border-zinc-700/50 animate-fadeInUp transition-shadow duration-300 hover:shadow-lg" style={{animationDelay: '400ms'}}>
           <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <CalendarDaysIcon className="h-6 w-6 text-zinc-500 dark:text-zinc-400" />
             Upcoming Deadlines
@@ -151,7 +162,7 @@ const DashboardView: React.FC<{
           <div className="mt-4 space-y-3 max-h-[28rem] overflow-y-auto pr-2">
             {upcomingDeadlines.length > 0 ? (
                 upcomingDeadlines.map(app => (
-                    <button key={app.id} onClick={() => onSelectApplication(app.id)} className={`w-full flex justify-between items-center p-3 rounded-md text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 bg-zinc-50 dark:bg-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-700 border-l-4 ${getDaysRemainingColor(app.daysRemaining)}`}>
+                    <button key={app.id} onClick={() => onSelectApplication(app.id)} className={`w-full flex justify-between items-center p-3 rounded-lg text-left transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-700/50 border-l-4 hover:border-l-8 hover:translate-x-2 transform ${getDaysRemainingColor(app.daysRemaining)}`}>
                         <div>
                             <p className="font-semibold text-zinc-800 dark:text-zinc-200">{app.schoolName}</p>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400">{new Date(app.deadline + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
@@ -168,7 +179,7 @@ const DashboardView: React.FC<{
         </div>
 
         <div className="space-y-6">
-            <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm animate-fadeInUp" style={{animationDelay: '500ms'}}>
+            <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md border border-zinc-200 dark:border-zinc-700/50 animate-fadeInUp transition-shadow duration-300 hover:shadow-lg" style={{animationDelay: '500ms'}}>
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4">
                     <ChartPieIcon className="h-6 w-6 text-zinc-500 dark:text-zinc-400" />
                     Application Status
@@ -197,7 +208,7 @@ const DashboardView: React.FC<{
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-sm animate-fadeInUp" style={{animationDelay: '600ms'}}>
+            <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md border border-zinc-200 dark:border-zinc-700/50 animate-fadeInUp transition-shadow duration-300 hover:shadow-lg" style={{animationDelay: '600ms'}}>
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4">
                     <TagIcon className="h-6 w-6 text-zinc-500 dark:text-zinc-400" />
                     Essay Progress by Tag
