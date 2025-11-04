@@ -61,39 +61,43 @@ const ApplicationList: React.FC<ApplicationListProps> = (props) => {
 
   return (
     <div key={props.sortAndFilterKey} className="space-y-6">
-      {props.applications.map((app, index) => (
-        <ApplicationCard
-          key={app.id}
-          application={app}
-          animationDelay={index * 50}
-          isExpanded={props.expandedAppIds.has(app.id)}
-          onToggleExpand={() => props.onToggleExpand(app.id)}
-          essays={props.essaysByApplicationId[app.id] || []}
-          tagsById={props.tagsById}
-          schoolTags={props.schoolTags}
-          essayTags={props.essayTags}
-          filterTagIds={props.filterTagIds}
-          onUpdateApplication={props.onUpdateApplication}
-          onRequestDeleteApplication={props.onRequestDeleteApplication}
-          onAddEssay={props.onAddEssay}
-          onUpdateEssay={props.onUpdateEssay}
-          onToggleEssayComplete={props.onToggleEssayComplete}
-          onCommitEssayHistory={props.onCommitEssayHistory}
-          onRequestDeleteEssay={props.onRequestDeleteEssay}
-          onReorderEssays={props.onReorderEssays}
-          onAddTask={props.onAddTask}
-          onToggleTask={props.onToggleTask}
-          onRequestDeleteTask={props.onRequestDeleteTask}
-          onAddTag={props.onAddTag}
-          expandedEssayIds={props.expandedEssayIds}
-          onToggleEssayExpand={props.onToggleEssayExpand}
-          expandedSectionKeys={props.expandedSectionKeys}
-          onToggleSectionExpand={props.onToggleSectionExpand}
-          onExpandAppContent={props.onExpandAppContent}
-          onCollapseAppContent={props.onCollapseAppContent}
-          onOpenHistoryViewer={props.onOpenHistoryViewer}
-        />
-      ))}
+      {props.applications.map((app, index) => {
+        const isScrolledTo = props.scrollToAppId === app.id;
+        return (
+          <ApplicationCard
+            key={app.id}
+            application={app}
+            animationDelay={index * 50}
+            isExpanded={props.expandedAppIds.has(app.id)}
+            onToggleExpand={() => props.onToggleExpand(app.id)}
+            essays={props.essaysByApplicationId[app.id] || []}
+            tagsById={props.tagsById}
+            schoolTags={props.schoolTags}
+            essayTags={props.essayTags}
+            filterTagIds={props.filterTagIds}
+            onUpdateApplication={props.onUpdateApplication}
+            onRequestDeleteApplication={props.onRequestDeleteApplication}
+            onAddEssay={props.onAddEssay}
+            onUpdateEssay={props.onUpdateEssay}
+            onToggleEssayComplete={props.onToggleEssayComplete}
+            onCommitEssayHistory={props.onCommitEssayHistory}
+            onRequestDeleteEssay={props.onRequestDeleteEssay}
+            onReorderEssays={props.onReorderEssays}
+            onAddTask={props.onAddTask}
+            onToggleTask={props.onToggleTask}
+            onRequestDeleteTask={props.onRequestDeleteTask}
+            onAddTag={props.onAddTag}
+            expandedEssayIds={props.expandedEssayIds}
+            onToggleEssayExpand={props.onToggleEssayExpand}
+            expandedSectionKeys={props.expandedSectionKeys}
+            onToggleSectionExpand={props.onToggleSectionExpand}
+            onExpandAppContent={props.onExpandAppContent}
+            onCollapseAppContent={props.onCollapseAppContent}
+            onOpenHistoryViewer={props.onOpenHistoryViewer}
+            isScrolledTo={isScrolledTo}
+          />
+        );
+      })}
     </div>
   );
 };

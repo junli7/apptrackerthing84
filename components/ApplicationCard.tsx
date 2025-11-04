@@ -41,6 +41,7 @@ interface ApplicationCardProps {
   onCollapseAppContent: (appId: string) => void;
   onOpenHistoryViewer: (version: EssayVersion) => void;
   animationDelay: number;
+  isScrolledTo: boolean;
 }
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({
@@ -72,6 +73,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   onCollapseAppContent,
   onOpenHistoryViewer,
   animationDelay,
+  isScrolledTo,
 }) => {
   const [notes, setNotes] = useState(application.notes);
   const [isEditing, setIsEditing] = useState(false);
@@ -79,6 +81,15 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const [editedDeadline, setEditedDeadline] = useState(application.deadline);
   const [editedTagIds, setEditedTagIds] = useState(application.tagIds || []);
   const [draggedEssayId, setDraggedEssayId] = useState<string | null>(null);
+  const [wasScrolledTo, setWasScrolledTo] = useState(isScrolledTo);
+
+  useEffect(() => {
+    // If this card is ever the target of a scroll, remember it so we don't
+    // try to animate it in on subsequent renders.
+    if (isScrolledTo) {
+      setWasScrolledTo(true);
+    }
+  }, [isScrolledTo]);
 
   const { completedTasks, totalTasks, progressPercentage, completedEssaysCount, totalEssaysCount } = useMemo(() => {
     const completedChecklistItems = application.checklist.filter(item => item.completed).length;
@@ -128,7 +139,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   
   const essayFiltersAreActive = useMemo(() => filterTagIds.some(id => tagsById[id]?.type === 'essay'), [filterTagIds, tagsById]);
   
-  const animationStyle = { animationDelay: `${animationDelay}ms` };
+  const animationStyle = { animationDelay: `${wasScrolledTo ? 0 : animationDelay}ms` };
+  const animationClass = wasScrolledTo ? '' : 'animate-fadeInUp';
 
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onUpdateApplication({ ...application, outcome: e.target.value as Outcome });
@@ -219,7 +231,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   };
 
   return (
-    <div id={`application-card-${application.id}`} style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 animate-fadeInUp`}>
+    <div id={`application-card-${application.id}`} style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${animationClass}`}>
       <div
         role="button"
         tabIndex={isEditing ? -1 : 0}
