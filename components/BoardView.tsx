@@ -7,9 +7,10 @@ interface BoardCardProps {
     application: Application;
     tags: Tag[];
     animationDelay: number;
+    onSelectApplication: (appId: string) => void;
 }
 
-const BoardCard: React.FC<BoardCardProps> = ({ application, tags, animationDelay }) => {
+const BoardCard: React.FC<BoardCardProps> = ({ application, tags, animationDelay, onSelectApplication }) => {
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
         e.dataTransfer.setData('applicationId', application.id);
         e.dataTransfer.effectAllowed = 'move';
@@ -24,6 +25,7 @@ const BoardCard: React.FC<BoardCardProps> = ({ application, tags, animationDelay
             style={{ animationDelay: `${animationDelay}ms` }}
             draggable 
             onDragStart={handleDragStart}
+            onClick={() => onSelectApplication(application.id)}
             className="bg-white dark:bg-zinc-700 p-3 rounded-md shadow-sm border border-zinc-200 dark:border-zinc-600 cursor-grab active:cursor-grabbing animate-fadeInUp"
         >
             <h4 className="font-semibold text-zinc-800 dark:text-zinc-100 text-sm">{application.schoolName}</h4>
@@ -44,9 +46,10 @@ interface BoardColumnProps {
     tagsById: Record<string, Tag>;
     onUpdateApplicationOutcome: (appId: string, newOutcome: Outcome) => void;
     animationDelay: number;
+    onSelectApplication: (appId: string) => void;
 }
 
-const BoardColumn: React.FC<BoardColumnProps> = ({ outcome, applications, tagsById, onUpdateApplicationOutcome, animationDelay }) => {
+const BoardColumn: React.FC<BoardColumnProps> = ({ outcome, applications, tagsById, onUpdateApplicationOutcome, animationDelay, onSelectApplication }) => {
     const [isDragOver, setIsDragOver] = useState(false);
     
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -89,6 +92,7 @@ const BoardColumn: React.FC<BoardColumnProps> = ({ outcome, applications, tagsBy
                             application={app} 
                             tags={(app.tagIds || []).map(id => tagsById[id]).filter(Boolean)} 
                             animationDelay={index * 50}
+                            onSelectApplication={onSelectApplication}
                         />
                     ))
                 ) : (
@@ -106,9 +110,10 @@ interface BoardViewProps {
     applications: Application[];
     tagsById: Record<string, Tag>;
     onUpdateApplicationOutcome: (appId: string, newOutcome: Outcome) => void;
+    onSelectApplication: (appId: string) => void;
 }
 
-const BoardView: React.FC<BoardViewProps> = ({ applications, tagsById, onUpdateApplicationOutcome }) => {
+const BoardView: React.FC<BoardViewProps> = ({ applications, tagsById, onUpdateApplicationOutcome, onSelectApplication }) => {
     const applicationsByOutcome = useMemo(() => {
         const grouped: Record<string, Application[]> = {};
         for (const outcome of OUTCOME_OPTIONS) {
@@ -132,6 +137,7 @@ const BoardView: React.FC<BoardViewProps> = ({ applications, tagsById, onUpdateA
                     tagsById={tagsById}
                     onUpdateApplicationOutcome={onUpdateApplicationOutcome}
                     animationDelay={index * 100}
+                    onSelectApplication={onSelectApplication}
                 />
             ))}
         </div>

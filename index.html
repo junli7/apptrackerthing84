@@ -44,6 +44,21 @@
   .animate-fadeInUp {
     animation: keyframes-fadeInUp 0.2s ease-out forwards;
   }
+  @keyframes highlight-scroll-effect {
+    0% {
+      outline: 4px solid rgba(34, 197, 94, 0);
+    }
+    50% {
+      outline: 4px solid rgba(34, 197, 94, 0.7);
+    }
+    100% {
+      outline: 4px solid rgba(34, 197, 94, 0);
+    }
+  }
+  .highlight-scroll {
+    outline-offset: 4px;
+    animation: highlight-scroll-effect 1.5s ease-out;
+  }
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>

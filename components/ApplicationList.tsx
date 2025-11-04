@@ -31,9 +31,25 @@ interface ApplicationListProps {
   onCollapseAppContent: (appId: string) => void;
   onOpenHistoryViewer: (version: EssayVersion) => void;
   sortAndFilterKey: string;
+  scrollToAppId: string | null;
+  onClearScrollToApp: () => void;
 }
 
 const ApplicationList: React.FC<ApplicationListProps> = (props) => {
+  React.useEffect(() => {
+    if (props.scrollToAppId) {
+        const element = document.getElementById(`application-card-${props.scrollToAppId}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.classList.add('highlight-scroll');
+            setTimeout(() => {
+                element.classList.remove('highlight-scroll');
+            }, 2000);
+        }
+        props.onClearScrollToApp();
+    }
+  }, [props.scrollToAppId, props.sortAndFilterKey, props.onClearScrollToApp]);
+
   if (props.applications.length === 0) {
     return (
       <div className="text-center py-16 px-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm">

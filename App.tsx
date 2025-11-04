@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Application, Essay, Tag, Outcome, ChecklistItem, EssayVersion } from './types';
 import { INITIAL_APPLICATIONS, INITIAL_ESSAYS, INITIAL_TAGS } from './constants';
@@ -15,6 +16,7 @@ import saveAs from 'file-saver';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, convertInchesToTwip } from 'docx';
 import EssayHistoryViewerModal from './components/modals/EssayHistoryViewerModal';
 import ProgressTracker from './components/ProgressTracker';
+import BackToTopButton from './components/BackToTopButton';
 
 const countWords = (text: string) => {
   if (!text) return 0;
@@ -81,6 +83,7 @@ const App: React.FC = () => {
   const [expandedSectionKeys, setExpandedSectionKeys] = useState<Record<string, Set<'checklist' | 'notes'>>>({});
   const [essayHistoryViewer, setEssayHistoryViewer] = useState<{ isOpen: boolean, version: EssayVersion | null }>({ isOpen: false, version: null });
   const [sortTrigger, setSortTrigger] = useState(0);
+  const [scrollToAppId, setScrollToAppId] = useState<string | null>(null);
 
   const handleRefreshSort = useCallback(() => {
     setSortTrigger(c => c + 1);
@@ -308,6 +311,20 @@ const App: React.FC = () => {
         }
     });
   }, [essays, applications, filterTagIds, searchQuery, tagsById, appsById, essaySortBy]);
+
+  const handleSelectApplicationFromBoard = useCallback((appId: string) => {
+    setCurrentView('list');
+    setExpandedAppIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(appId);
+        return newSet;
+    });
+    setScrollToAppId(appId);
+  }, []);
+
+  const handleClearScrollToApp = useCallback(() => {
+    setScrollToAppId(null);
+  }, []);
 
   const handleToggleExpand = (appId: string) => {
     setExpandedAppIds(prev => {
@@ -796,6 +813,8 @@ const App: React.FC = () => {
                   onExpandAppContent={handleExpandAppContent}
                   onCollapseAppContent={handleCollapseAppContent}
                   onOpenHistoryViewer={(version) => setEssayHistoryViewer({ isOpen: true, version })}
+                  scrollToAppId={scrollToAppId}
+                  onClearScrollToApp={handleClearScrollToApp}
                 />
             )}
             
@@ -804,6 +823,7 @@ const App: React.FC = () => {
                     applications={displayedApplications}
                     tagsById={tagsById}
                     onUpdateApplicationOutcome={handleUpdateApplicationOutcome}
+                    onSelectApplication={handleSelectApplicationFromBoard}
                 />
             )}
 
@@ -813,9 +833,10 @@ const App: React.FC = () => {
                     applications={applications}
                     tagsById={tagsById}
                     essayTags={essayTags}
-                    onUpdateEssay={handleUpdateEssay}
+                    onUpdateEssay={onUpdateEssay}
                     onToggleEssayComplete={handleToggleEssayComplete}
                     onCommitEssayHistory={handleCommitEssayHistory}
+                    // Fix: Use the correct function name `requestDeleteEssay` instead of `onRequestDeleteEssay`.
                     onRequestDeleteEssay={requestDeleteEssay}
                     onAddTag={handleAddTag}
                     expandedEssayIds={expandedEssayIds}
@@ -871,6 +892,7 @@ const App: React.FC = () => {
         accept=".json"
         onChange={handleFileSelected}
       />
+      {currentView === 'list' && <BackToTopButton />}
     </div>
   );
 };

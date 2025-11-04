@@ -219,7 +219,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   };
 
   return (
-    <div style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 animate-fadeInUp`}>
+    <div id={`application-card-${application.id}`} style={{ ...cardBgStyle, ...animationStyle }} className={`${cardBgClass} rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 animate-fadeInUp`}>
       <div
         role="button"
         tabIndex={isEditing ? -1 : 0}
