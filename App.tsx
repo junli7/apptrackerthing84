@@ -833,7 +833,7 @@ const App: React.FC = () => {
                     applications={applications}
                     tagsById={tagsById}
                     essayTags={essayTags}
-                    onUpdateEssay={onUpdateEssay}
+                    onUpdateEssay={handleUpdateEssay}
                     onToggleEssayComplete={handleToggleEssayComplete}
                     onCommitEssayHistory={handleCommitEssayHistory}
                     // Fix: Use the correct function name `requestDeleteEssay` instead of `onRequestDeleteEssay`.
