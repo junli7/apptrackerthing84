@@ -9,11 +9,14 @@ import ViewColumnsIcon from './icons/ViewColumnsIcon';
 import GraduationCapIcon from './icons/GraduationCapIcon';
 import ChartPieIcon from './icons/ChartPieIcon';
 import FunnelIcon from './icons/FunnelIcon';
+import TrophyIcon from './icons/TrophyIcon';
+import ScaleIcon from './icons/ScaleIcon';
+import MapPinIcon from './icons/MapPinIcon';
 import TagComponent from './Tag';
 
 type SortByType = 'deadline-asc' | 'schoolName-asc' | 'schoolName-desc' | 'doneness-asc' | 'doneness-desc';
 type EssaySortByType = 'deadline-asc' | 'schoolName-asc' | 'wordCount-asc' | 'wordCount-desc';
-type ViewType = 'dashboard' | 'list' | 'board' | 'essays';
+type ViewType = 'dashboard' | 'list' | 'board' | 'essays' | 'results' | 'compare' | 'map';
 
 interface ControlsProps {
   currentView: ViewType;
@@ -32,33 +35,40 @@ interface ControlsProps {
   onExpandAll: () => void;
   onCollapseAll: () => void;
   onExportToDocx: () => void;
+  onExportToCsv: () => void;
   resultsCount: number;
 }
 
 const ViewSwitcher: React.FC<{ currentView: ViewType, onSetView: (view: ViewType) => void }> = ({ currentView, onSetView }) => {
-    const views: { id: ViewType, name: string, icon: React.FC<any> }[] = [
-        { id: 'dashboard', name: 'Dashboard', icon: ChartPieIcon },
-        { id: 'list', name: 'List', icon: ListBulletIcon },
-        { id: 'board', name: 'Board', icon: ViewColumnsIcon },
-        { id: 'essays', name: 'Essays', icon: GraduationCapIcon },
+    const views: { id: ViewType, name: string, icon: React.FC<any>, shortcut: string }[] = [
+        { id: 'dashboard', name: 'Dashboard', icon: ChartPieIcon, shortcut: '1' },
+        { id: 'list', name: 'List', icon: ListBulletIcon, shortcut: '2' },
+        { id: 'board', name: 'Board', icon: ViewColumnsIcon, shortcut: '3' },
+        { id: 'essays', name: 'Essays', icon: GraduationCapIcon, shortcut: '4' },
+        { id: 'results', name: 'Results', icon: TrophyIcon, shortcut: '5' },
+        { id: 'compare', name: 'Compare', icon: ScaleIcon, shortcut: '6' },
+        { id: 'map', name: 'Map', icon: MapPinIcon, shortcut: '7' },
     ];
     return (
-        <div className="flex items-center p-1 bg-zinc-200 dark:bg-zinc-700 rounded-lg">
-            {views.map(view => (
-                <button
-                    key={view.id}
-                    onClick={() => onSetView(view.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ease-in-out transform active:scale-95 ${
-                        currentView === view.id
-                            ? 'bg-white text-zinc-800 shadow-sm dark:bg-zinc-600 dark:text-white'
-                            : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-600/60 hover:text-zinc-800 dark:hover:text-zinc-100'
-                    }`}
-                    aria-current={currentView === view.id}
-                >
-                    <view.icon className="h-5 w-5" />
-                    <span className="hidden sm:inline">{view.name}</span>
-                </button>
-            ))}
+        <div className="w-full md:w-auto overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex items-center p-1 bg-zinc-200 dark:bg-zinc-700 rounded-lg min-w-max">
+                {views.map(view => (
+                    <button
+                        key={view.id}
+                        onClick={() => onSetView(view.id)}
+                        title={`${view.name} (${view.shortcut})`}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ease-in-out transform active:scale-95 touch-manipulation ${
+                            currentView === view.id
+                                ? 'bg-white text-zinc-800 shadow-sm dark:bg-zinc-600 dark:text-white'
+                                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-600/60 hover:text-zinc-800 dark:hover:text-zinc-100'
+                        }`}
+                        aria-current={currentView === view.id}
+                    >
+                        <view.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="hidden sm:inline whitespace-nowrap">{view.name}</span>
+                    </button>
+                ))}
+            </div>
         </div>
     );
 };
@@ -139,7 +149,7 @@ const TagFilter: React.FC<{
 
 
 const Controls: React.FC<ControlsProps> = (props) => {
-  const { currentView, onSetView, sortBy, onSortByChange, essaySortBy, onEssaySortByChange, onRefreshSort, searchQuery, onSearchQueryChange, essayTags, schoolTags, filterTagIds, onFilterTagIdsChange, onExpandAll, onCollapseAll, onExportToDocx, resultsCount } = props;
+  const { currentView, onSetView, sortBy, onSortByChange, essaySortBy, onEssaySortByChange, onRefreshSort, searchQuery, onSearchQueryChange, essayTags, schoolTags, filterTagIds, onFilterTagIdsChange, onExpandAll, onCollapseAll, onExportToDocx, onExportToCsv, resultsCount } = props;
   
   const handleToggleTag = (tagId: string) => {
     onFilterTagIdsChange(
@@ -229,11 +239,17 @@ const Controls: React.FC<ControlsProps> = (props) => {
                 </div>
             )}
           <button
+            onClick={onExportToCsv}
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
+          >
+            CSV
+          </button>
+          <button
             onClick={onExportToDocx}
             className="w-full md:w-auto flex items-center justify-center gap-2 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-zinc-800 transition-all active:scale-95 hover:-translate-y-0.5 duration-150"
           >
             <DocumentTextIcon className="h-4 w-4" />
-            Export DOCX
+            DOCX
           </button>
         </div>
       </div>

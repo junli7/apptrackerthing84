@@ -24,6 +24,14 @@ export interface ChecklistItem {
   completed: boolean;
 }
 
+// Location interface for map view
+export interface SchoolLocation {
+  city: string;
+  state: string;
+  lat?: number;
+  lng?: number;
+}
+
 // Fix: Defined and exported the Application interface.
 export interface Application {
   id: string;
@@ -33,6 +41,13 @@ export interface Application {
   notes: string;
   checklist: ChecklistItem[];
   tagIds: string[];
+  decisionDate?: string; // YYYY-MM-DD - when the decision was received
+  financialAid?: number; // Annual financial aid amount offered in dollars
+  tuitionCost?: number; // Annual cost of attendance in dollars
+  responseDeadline?: string; // YYYY-MM-DD - deadline to respond/commit
+  pros?: string[]; // List of pros for this school
+  cons?: string[]; // List of cons for this school
+  location?: SchoolLocation; // School location for map view
 }
 
 export interface EssayVersion {

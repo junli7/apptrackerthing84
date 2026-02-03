@@ -83,6 +83,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const [editedSchoolName, setEditedSchoolName] = useState(application.schoolName);
   const [editedDeadline, setEditedDeadline] = useState(application.deadline);
   const [editedTagIds, setEditedTagIds] = useState(application.tagIds || []);
+  const [editedCity, setEditedCity] = useState(application.location?.city || '');
+  const [editedState, setEditedState] = useState(application.location?.state || '');
   const [draggedEssayId, setDraggedEssayId] = useState<string | null>(null);
   const [wasScrolledTo, setWasScrolledTo] = useState(isScrolledTo);
 
@@ -159,6 +161,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     setEditedSchoolName(application.schoolName);
     setEditedDeadline(application.deadline);
     setEditedTagIds(application.tagIds || []);
+    setEditedCity(application.location?.city || '');
+    setEditedState(application.location?.state || '');
   }, [application]);
 
   useEffect(() => {
@@ -181,11 +185,15 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
   const handleSave = () => {
     if (editedSchoolName.trim()) {
+      const locationData = editedCity.trim() && editedState.trim()
+        ? { city: editedCity.trim(), state: editedState.trim().toUpperCase() }
+        : application.location;
       onUpdateApplication({
         ...application,
         schoolName: editedSchoolName.trim(),
         deadline: editedDeadline,
         tagIds: editedTagIds,
+        location: locationData,
       });
       setIsEditing(false);
     }
@@ -196,6 +204,8 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
     setEditedSchoolName(application.schoolName);
     setEditedDeadline(application.deadline);
     setEditedTagIds(application.tagIds || []);
+    setEditedCity(application.location?.city || '');
+    setEditedState(application.location?.state || '');
   };
 
   const formattedDeadline = new Date(application.deadline + 'T00:00:00').toLocaleDateString(undefined, {
@@ -281,14 +291,46 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
                       ))}
                     </div>
                 </div>
+                <div className="mt-2 grid grid-cols-2 gap-2" onClick={e => e.stopPropagation()}>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={editedCity}
+                        onChange={(e) => setEditedCity(e.target.value)}
+                        placeholder="e.g., Cambridge"
+                        className="w-full text-sm bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">State</label>
+                      <input
+                        type="text"
+                        value={editedState}
+                        onChange={(e) => setEditedState(e.target.value)}
+                        placeholder="e.g., MA"
+                        maxLength={2}
+                        className="w-full text-sm bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 uppercase"
+                      />
+                    </div>
+                </div>
               </div>
             ) : (
               <>
                 <h2 className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white truncate">{application.schoolName}</h2>
-                <div className="mt-1">
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
                   <p className="text-zinc-500 dark:text-zinc-400">
                     Deadline: <span className="font-semibold">{formattedDeadline}</span>
                   </p>
+                  {application.location && (
+                    <p className="text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                      </svg>
+                      <span className="font-semibold">{application.location.city}, {application.location.state}</span>
+                    </p>
+                  )}
                 </div>
                  <div className="flex flex-wrap gap-1 mt-2">
                   {(application.tagIds || []).map(id => tagsById[id]).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name)).map(tag => (

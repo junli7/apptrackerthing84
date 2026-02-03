@@ -52,9 +52,24 @@ const ApplicationList: React.FC<ApplicationListProps> = (props) => {
 
   if (props.applications.length === 0) {
     return (
-      <div className="text-center py-16 px-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">No applications match your search or filter.</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-2">Try a different term or clear the filter.</p>
+      <div className="text-center py-16 px-8 bg-gradient-to-br from-white to-zinc-50 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl shadow-md border border-zinc-200 dark:border-zinc-700 animate-fadeIn">
+        <div className="relative inline-block mb-6">
+          <svg className="h-16 w-16 text-zinc-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-zinc-700 dark:text-zinc-300">No applications found</h2>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-2 max-w-sm mx-auto">
+          No applications match your current search or filter criteria. Try adjusting your filters or search terms.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm">
+          <span className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-full">
+            Clear search
+          </span>
+          <span className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-full">
+            Remove filters
+          </span>
+        </div>
       </div>
     );
   }

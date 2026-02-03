@@ -8,6 +8,9 @@ import ApplicationList from './components/ApplicationList';
 import BoardView from './components/BoardView';
 import EssayView from './components/EssayView';
 import DashboardView from './components/DashboardView';
+import ResultsView from './components/ResultsView';
+import CompareView from './components/CompareView';
+import MapView from './components/MapView';
 import AddSchoolModal from './components/modals/AddSchoolModal';
 import AddEssayModal from './components/modals/AddEssayModal';
 import ManageTagsModal from './components/modals/ManageTagsModal';
@@ -17,14 +20,15 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, conv
 import EssayHistoryViewerModal from './components/modals/EssayHistoryViewerModal';
 import ProgressTracker from './components/ProgressTracker';
 import BackToTopButton from './components/BackToTopButton';
+import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
 
 const countWords = (text: string) => {
   if (!text) return 0;
   return text.trim().split(/\s+/).filter(Boolean).length;
 };
 
-type ViewType = 'dashboard' | 'list' | 'board' | 'essays';
-const VALID_VIEWS: ViewType[] = ['dashboard', 'list', 'board', 'essays'];
+type ViewType = 'dashboard' | 'list' | 'board' | 'essays' | 'results' | 'compare' | 'map';
+const VALID_VIEWS: ViewType[] = ['dashboard', 'list', 'board', 'essays', 'results', 'compare', 'map'];
 
 const App: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -32,6 +36,99 @@ const App: React.FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const importFileRef = useRef<HTMLInputElement>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Apply dark mode class to document
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', String(isDarkMode));
+  }, [isDarkMode]);
+
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => !prev);
+  }, []);
+
+  // Toast notification system
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = useCallback((type: ToastType, message: string, duration?: number) => {
+    const id = crypto.randomUUID();
+    setToasts(prev => [...prev, { id, type, message, duration }]);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (e.key === 'Escape') {
+          target.blur();
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + key shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'n':
+            e.preventDefault();
+            setAddSchoolModalOpen(true);
+            break;
+          case 'd':
+            e.preventDefault();
+            toggleDarkMode();
+            break;
+        }
+        return;
+      }
+
+      // Number keys for view switching (no modifiers)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        switch (e.key) {
+          case '1':
+            setCurrentView('dashboard');
+            break;
+          case '2':
+            setCurrentView('list');
+            break;
+          case '3':
+            setCurrentView('board');
+            break;
+          case '4':
+            setCurrentView('essays');
+            break;
+          case '5':
+            setCurrentView('results');
+            break;
+          case '6':
+            setCurrentView('compare');
+            break;
+          case '7':
+            setCurrentView('map');
+            break;
+          case '?':
+            showToast('info', 'Shortcuts: 1-7 switch views, Ctrl+N new school, Ctrl+D dark mode', 5000);
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleDarkMode, showToast]);
 
   useEffect(() => {
     try {
@@ -459,6 +556,7 @@ const App: React.FC = () => {
       ],
     };
     setApplications(prev => [...prev, newSchool]);
+    showToast('success', `Added ${schoolData.schoolName} to your applications`);
   };
   
   const handleUpdateApplication = (updatedApp: Application) => {
@@ -472,8 +570,10 @@ const App: React.FC = () => {
   };
 
   const handleDeleteApplication = (appId: string) => {
+    const appName = applications.find(a => a.id === appId)?.schoolName || 'Application';
     setApplications(prev => prev.filter(app => app.id !== appId));
     setEssays(prev => prev.filter(essay => essay.applicationId !== appId));
+    showToast('success', `Deleted ${appName}`);
   };
 
   const handleAddEssay = (newEssayData: Omit<Essay, 'id' | 'order' | 'history' | 'completed'>) => {
@@ -689,6 +789,7 @@ const App: React.FC = () => {
     
     Packer.toBlob(doc).then(blob => {
       saveAs(blob, "College-Application-Tracker-Export.docx");
+      showToast('success', 'Exported to DOCX successfully');
     });
   };
 
@@ -701,6 +802,59 @@ const App: React.FC = () => {
     const jsonString = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     saveAs(blob, "college-app-tracker-data.json");
+    showToast('success', 'Data exported successfully');
+  };
+
+  const handleExportToCsv = () => {
+    // CSV headers
+    const headers = [
+      'School Name',
+      'Deadline',
+      'Outcome',
+      'Decision Date',
+      'Tuition Cost',
+      'Financial Aid',
+      'Net Cost',
+      'Response Deadline',
+      'Location',
+      'Tags',
+      'Notes',
+      'Pros',
+      'Cons',
+    ];
+
+    // CSV rows
+    const rows = displayedApplications.map(app => {
+      const appTags = (app.tagIds || []).map(id => tagsById[id]).filter(Boolean);
+      const netCost = (app.tuitionCost || 0) - (app.financialAid || 0);
+      const location = app.location ? `${app.location.city}, ${app.location.state}` : '';
+
+      return [
+        app.schoolName,
+        app.deadline,
+        app.outcome,
+        app.decisionDate || '',
+        app.tuitionCost?.toString() || '',
+        app.financialAid?.toString() || '',
+        netCost.toString(),
+        app.responseDeadline || '',
+        location,
+        appTags.map(t => t.name).join('; '),
+        app.notes.replace(/"/g, '""'), // Escape quotes
+        (app.pros || []).join('; '),
+        (app.cons || []).join('; '),
+      ];
+    });
+
+    // Build CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'college-applications.csv');
+    showToast('success', 'Exported to CSV successfully');
   };
 
   const handleImportData = () => {
@@ -729,6 +883,7 @@ const App: React.FC = () => {
                     setTags(importedData.tags);
                     // Reset UI state
                     handleCollapseAll();
+                    showToast('success', 'Data imported successfully');
                 }
             });
         } else {
@@ -780,11 +935,13 @@ const App: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-sans">
-      <Header 
-        onAddSchool={() => setAddSchoolModalOpen(true)} 
+      <Header
+        onAddSchool={() => setAddSchoolModalOpen(true)}
         onOpenManageTags={() => setManageTagsModalOpen(true)}
         onExportData={handleExportData}
         onImportData={handleImportData}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
       />
       <main className="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <Controls
@@ -804,10 +961,11 @@ const App: React.FC = () => {
           onExpandAll={handleExpandAll}
           onCollapseAll={handleCollapseAll}
           onExportToDocx={handleExportToDocx}
+          onExportToCsv={handleExportToCsv}
           resultsCount={currentView === 'essays' ? essaysForEssayView.length : displayedApplications.length}
         />
         
-        {currentView !== 'dashboard' && (
+        {currentView !== 'dashboard' && currentView !== 'results' && currentView !== 'compare' && currentView !== 'map' && (
           <ProgressTracker
             completedEssays={progressData.completedEssaysCount}
             totalEssays={progressData.totalEssays}
@@ -889,6 +1047,33 @@ const App: React.FC = () => {
                     onOpenHistoryViewer={(version) => setEssayHistoryViewer({ isOpen: true, version })}
                  />
             )}
+
+            {currentView === 'results' && (
+                <ResultsView
+                    applications={displayedApplications}
+                    tagsById={tagsById}
+                    onSelectApplication={handleSelectApplicationFromDashboard}
+                    onUpdateApplication={handleUpdateApplication}
+                />
+            )}
+
+            {currentView === 'compare' && (
+                <CompareView
+                    applications={displayedApplications}
+                    tagsById={tagsById}
+                    onUpdateApplication={handleUpdateApplication}
+                    onSelectApplication={handleSelectApplicationFromDashboard}
+                />
+            )}
+
+            {currentView === 'map' && (
+                <MapView
+                    applications={displayedApplications}
+                    tagsById={tagsById}
+                    onSelectApplication={handleSelectApplicationFromDashboard}
+                    onUpdateApplication={handleUpdateApplication}
+                />
+            )}
         </div>
       </main>
 
@@ -938,6 +1123,7 @@ const App: React.FC = () => {
         onChange={handleFileSelected}
       />
       {currentView === 'list' && <BackToTopButton />}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 };
